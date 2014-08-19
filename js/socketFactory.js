@@ -56,10 +56,6 @@ ikApp.factory('socketFactory', ['$http', '$q', function($http, $q) {
     return Cookie;
   })();
 
-  /***************************
-   * Private methods
-   *****************/
-
   /**
    * Activate the screen and connect.
    * @param activationCode
@@ -255,6 +251,13 @@ ikApp.factory('socketFactory', ['$http', '$q', function($http, $q) {
     });
   };
 
+  /********************************
+   * Public methods
+   ********************************/
+
+  /**
+   * Call this to start the socket connection.
+   */
   factory.start = function start() {
     loadSocket(function() {
       activation();
