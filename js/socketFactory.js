@@ -1,4 +1,4 @@
-ikApp.factory('socketFactory', ['$http', '$q', function($http, $q) {
+ikApp.factory('socketFactory', [function() {
   var factory = {};
 
   // Get the load configuration object.
@@ -57,54 +57,6 @@ ikApp.factory('socketFactory', ['$http', '$q', function($http, $q) {
   })();
 
   /**
-   * Activate the screen and connect.
-   * @param activationCode
-   *   Activation code for the screen.
-   */
-  var activateScreenAndConnect = function activateScreenAndConnect(activationCode) {
-    // Build ajax post request.
-    var request = new XMLHttpRequest();
-    request.open('POST', config.resource.server + config.resource.uri + '/activate', true);
-    request.setRequestHeader('Content-Type', 'application/json');
-
-    request.onload = function(resp) {
-      if (request.readyState == 4 && request.status == 200) {
-        // Success.
-        resp = JSON.parse(request.responseText);
-
-        // Try to get connection to the proxy.
-        connect(resp.token);
-      }
-      else {
-        // We reached our target server, but it returned an error
-        alert('Activation could not be performed.');
-      }
-    }
-
-    request.onerror = function(exception) {
-      // There was a connection error of some sort
-      alert('Activation request failed.');
-    }
-
-    // Send the request.
-    request.send(JSON.stringify({ activationCode: activationCode }));
-  }
-
-  /**
-   * Get GET-parameter @name from the url
-   * @param name
-   * @returns {string}
-   */
-  var getParameterByName = function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-    var results = regex.exec(location.search);
-
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-  }
-
-  /**
    * Check if a valid token exists.
    *
    * If a token is found a connection to the proxy is attempted. If token
@@ -118,44 +70,17 @@ ikApp.factory('socketFactory', ['$http', '$q', function($http, $q) {
     var token = token_cookie.get('token');
 
     if (token === undefined) {
-      // If key in url do ajax and return;
-      var key = getParameterByName('key');
-      if (key !== "") {
-        activateScreenAndConnect(key);
-
-        return false;
-      }
-
-      // Token not found, so display actiavte page.
-      var template = Handlebars.templates.activation;
-      var output = template({button: 'Activation'});
-
-      // Insert the render content.
-      var el = document.getElementsByClassName('content');
-      el[0].innerHTML = output;
-
-      // Add event listener to form submit button.
-      el = document.getElementsByClassName('btn-activate');
-      el[0].addEventListener('click', function(event) {
-        event.preventDefault();
-
-        // Send the request.
-        var form = document.getElementsByClassName('form-activation-code');
-        activateScreenAndConnect(form[0].value);
-
-        return false;
-      });
+      return false;
     }
     else {
       // If token exists, connect to the socket.
       connect(token);
+      return true;
     }
   }
 
   /**
    * Load the socket.io script from the proxy server.
-   *
-   * Retry if  io  is not loaded after 30 seconds.
    */
   var loadSocket = function loadSocket(callback) {
     var file = document.createElement('script');
@@ -260,9 +185,47 @@ ikApp.factory('socketFactory', ['$http', '$q', function($http, $q) {
    */
   factory.start = function start() {
     loadSocket(function() {
-      activation();
+      if (activation()) {
+        return false;
+      } else {
+        return true;
+      }
     });
   };
+
+  /**
+   * Activate the screen and connect.
+   * @param activationCode
+   *   Activation code for the screen.
+   */
+  factory.activateScreenAndConnect = function activateScreenAndConnect(activationCode) {
+    // Build ajax post request.
+    var request = new XMLHttpRequest();
+    request.open('POST', config.resource.server + config.resource.uri + '/activate', true);
+    request.setRequestHeader('Content-Type', 'application/json');
+
+    request.onload = function(resp) {
+      if (request.readyState == 4 && request.status == 200) {
+        // Success.
+        resp = JSON.parse(request.responseText);
+
+        // Try to get connection to the proxy.
+        connect(resp.token);
+      }
+      else {
+        // We reached our target server, but it returned an error
+        alert('Activation could not be performed.');
+      }
+    }
+
+    request.onerror = function(exception) {
+      // There was a connection error of some sort
+      alert('Activation request failed.');
+    }
+
+    // Send the request.
+    request.send(JSON.stringify({ activationCode: activationCode }));
+  }
 
   return factory;
 }]);

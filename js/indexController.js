@@ -1,6 +1,17 @@
 ikApp.controller('IndexController', ['$scope', 'socketFactory', function ($scope, socketFactory) {
-  socketFactory.start();
+  $scope.activationCode = '';
+  $scope.step = 'init';
 
-  // Interval for each slide
-  
+  var activated = socketFactory.start();
+
+  if (activated) {
+    $scope.step = 'activated'
+  }
+  else {
+    $scope.step = 'not-activated';
+  }
+
+  $scope.submitActivationCode = function() {
+    socketFactory.activateScreenAndConnect($scope.activationCode);
+  }
 }]);
