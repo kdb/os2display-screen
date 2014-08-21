@@ -1,4 +1,4 @@
-ikApp.factory('socketFactory', [function() {
+ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   var factory = {};
 
   // Get the load configuration object.
@@ -9,6 +9,8 @@ ikApp.factory('socketFactory', [function() {
 
   // Global variable with token cookie.
   var token_cookie = undefined;
+
+  var app_initialized = true;
 
   /**
    * Cookie object.
@@ -22,7 +24,8 @@ ikApp.factory('socketFactory', [function() {
 
       // Get token.
       self.get = function get() {
-        var regexp = new RegExp("(?:^" + name + "|;\s*"+ name + ")=(.*?)(?:;|$)", "g");
+        var regexp = new RegExp("(?:^" + name + "|\s*"+ name + ")=(.*?)(?:;|$)", "g");
+
         var result = regexp.exec(document.cookie);
         return (result === null) ? undefined : result[1];
       }
@@ -66,16 +69,16 @@ ikApp.factory('socketFactory', [function() {
    */
   var activation = function activation() {
     // Check if token exists.
-    token_cookie = new Cookie('infostander_token');
-    var token = token_cookie.get('token');
+    token_cookie = new Cookie('indholdskanalen_token');
+
+    var token = token_cookie.get();
 
     if (token === undefined) {
-      return false;
+      $rootScope.$emit("activationNotComplete");
     }
     else {
       // If token exists, connect to the socket.
       connect(token);
-      return true;
     }
   }
 
@@ -92,7 +95,7 @@ ikApp.factory('socketFactory', [function() {
           console.error("io not loaded");
         }
         document.getElementsByTagName("head")[0].removeChild(file);
-        window.setTimeout(factory.start(), 100);
+        window.setTimeout(loadSocket(callback), 100);
       } else {
         callback();
       }
@@ -123,7 +126,7 @@ ikApp.factory('socketFactory', [function() {
       token_cookie.set(token);
 
       // Set ready state at the server, if not reconnected.
-      if (content_init) {
+      if (app_initialized) {
         socket.emit('ready', { token: token });
       }
     });
@@ -149,8 +152,8 @@ ikApp.factory('socketFactory', [function() {
         }
       }
       else {
-        // Remove the form.
-        updateContent('Awaiting content...');
+        //
+        $rootScope.$emit('awaitingContent', {});
       }
     });
 
@@ -170,9 +173,13 @@ ikApp.factory('socketFactory', [function() {
     // Channel pushed content.
     socket.on('channelPush', function (data) {
       if (window.console) {
-        console.log("channelPush");
+        console.log('channelPush');
         console.log(data);
       }
+
+      $rootScope.$emit('channelPush', data);
+
+      app_initialized = false;
     });
   };
 
@@ -185,11 +192,7 @@ ikApp.factory('socketFactory', [function() {
    */
   factory.start = function start() {
     loadSocket(function() {
-      if (activation()) {
-        return false;
-      } else {
-        return true;
-      }
+      return activation();
     });
   };
 
