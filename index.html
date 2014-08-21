@@ -1,0 +1,35 @@
+<html data-ng-app="ikApp">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Indholdskanalen</title>
+
+  <script src="js/config.js"></script>
+  <script src="js/angular-1.2.22.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/socketFactory.js"></script>
+  <script src="js/indexController.js"></script>
+</head>
+<body data-ng-controller="IndexController">
+  <div data-ng-show="step == 'init'">
+    Initialising...
+  </div>
+
+  <div data-ng-show="step == 'not-activated'">
+    <h1>Screen activation</h1>
+    <form data-ng-submit="submitActivationCode()" data-ng-cloak="">
+      <input data-ng-model="activationCode" type="text" placeholder="Activation code" required autofocus>
+      <button type="submit">Activate</button>
+    </form>
+  </div>
+
+  <div data-ng-show="step == 'awaiting-content'">
+    Awaiting content...
+  </div>
+
+  <div data-ng-show="step == 'loading'">
+    Loading...
+  </div>
+</body>
+</html>
