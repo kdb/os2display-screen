@@ -31,5 +31,11 @@
   <div data-ng-show="step == 'loading'">
     Loading...
   </div>
+
+  <div data-ng-show="step == 'show-content'">
+    <div data-ng-repeat="slide in slides" data-ng-show="currentIndex == $index">
+      <img data-ng-src="http://service.indholdskanalen.vm/{{slide.options.image}}">
+    </div>
+  </div>
 </body>
 </html>

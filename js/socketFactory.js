@@ -172,12 +172,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
 
     // Channel pushed content.
     socket.on('channelPush', function (data) {
-      if (window.console) {
-        console.log('channelPush');
-        console.log(data);
-      }
-
-      $rootScope.$emit('channelPush', data);
+      $rootScope.$emit('showContent', data);
 
       app_initialized = false;
     });
