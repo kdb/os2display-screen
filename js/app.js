@@ -1,1 +1,1 @@
-var ikApp = angular.module('ikApp', []);
+var ikApp = angular.module('ikApp', ['ngAnimate']);

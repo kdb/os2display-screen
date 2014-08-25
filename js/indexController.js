@@ -1,4 +1,4 @@
-ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socketFactory', function ($scope, $rootScope, $interval, socketFactory) {
+ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', '$sce', 'socketFactory', function ($scope, $rootScope, $interval, $sce, socketFactory) {
   $scope.activationCode = '';
   $scope.step = 'init';
   $scope.slides = [];
@@ -20,13 +20,24 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socke
       $scope.interval = undefined;
     }
 
+    $scope.running = true;
+
     $scope.interval = $interval(function() {
       $scope.currentIndex++;
       if ($scope.currentIndex >= $scope.slides.length) {
         $scope.currentIndex = 0;
+        if ($scope.slidesUpdated) {
+          $scope.slides = $scope.nextSlides;
+          $scope.slidesUpdated = false;
+        }
       }
     }, 5000);
   };
+
+  var updateSlideShow = function updateSlideShow(data) {
+    $scope.nextSlides = data.slides;
+    $scope.slidesUpdated = true;
+  }
 
   $rootScope.$on('showContent', function(event, data) {
     if (data === null) {
@@ -34,11 +45,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socke
     }
 
     if ($scope.running) {
-      startSlideShow();
+      updateSlideShow(data);
     }
     else {
       $scope.slides = data.slides;
-      $scope.running = true;
       startSlideShow();
       $scope.step = 'show-content';
       $scope.$apply();
