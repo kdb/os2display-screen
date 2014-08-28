@@ -6,9 +6,6 @@ window.config = {
   ws: {
     server: 'http://indholdskanalen.vm/'
   },
-  backend: {
-    address: 'http://service.indholdskanalen.vm/'
-  },
   cookie: {
     secure: false
   }

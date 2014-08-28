@@ -9,15 +9,24 @@
 
   <title>Indholdskanalen</title>
 
+  <!-- Load angular -->
+  <script src="js/lib/angular-1.2.22.min.js"></script>
+  <script src="js/lib/angular-animate-1.2.22.min.js"></script>
+
+  <!-- Load configuration -->
   <script src="js/config.js"></script>
-  <script src="js/angular-1.2.22.min.js"></script>
-  <script src="js/angular-animate-1.2.22.min.js"></script>
+
+  <!-- Start the party by loadin the main app -->
   <script src="js/app.js"></script>
-  <script src="js/slideDirective.js"></script>
-  <script src="js/socketFactory.js"></script>
-  <script src="js/indexController.js"></script>
+
+  <!-- Load custom extension -->
+  <script src="js/directives/slideDirective.js"></script>
+  <script src="js/factories/socketFactory.js"></script>
+  <script src="js/controllers/indexController.js"></script>
+
 </head>
 <body data-ng-controller="IndexController">
+
   <div data-ng-show="step == 'init'">
     Initialising...
   </div>
@@ -43,5 +52,6 @@
       <ik-slide ik-index="{{$index}}"></ik-slide>
     </div>
   </div>
+
 </body>
 </html>

@@ -10,6 +10,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   // Global variable with token cookie.
   var token_cookie = undefined;
 
+  // Defines the application state.
   var app_initialized = true;
 
   /**
