@@ -1,5 +1,7 @@
 /**
+ * @file
  * Directive to insert html for a slide.
+ *
  * @param ik-id: the id of the slide.
  * @param ik-width: the width of the slide.
  */
