@@ -8,6 +8,10 @@ window.config = {
   ws: {
     server: '//localhost:3000/'
   },
+  // Backend to connect to.
+  backend: {
+    address: 'http://service.indholdskanalen.vm/'
+  },
   // If cookie is secure it's only send over https.
   cookie: {
     secure: true

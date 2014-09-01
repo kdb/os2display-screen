@@ -10,6 +10,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   // Global variable with token cookie.
   var token_cookie = undefined;
 
+  // Defines the application state.
   var app_initialized = true;
 
   /**
@@ -80,7 +81,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       // If token exists, connect to the socket.
       connect(token);
     }
-  }
+  };
 
   /**
    * Load the socket.io script from the proxy server.
@@ -101,7 +102,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       }
     };
     document.getElementsByTagName("head")[0].appendChild(file);
-  }
+  };
 
   /**
    * Connect to the web-socket.
@@ -223,7 +224,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
 
     // Send the request.
     request.send(JSON.stringify({ activationCode: activationCode }));
-  }
+  };
 
   return factory;
 }]);
