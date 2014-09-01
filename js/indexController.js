@@ -25,13 +25,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', '$sce'
     $scope.interval = $interval(function() {
       $scope.currentIndex++;
       if ($scope.currentIndex >= $scope.slides.length) {
-        $scope.currentIndex = 0;
         if ($scope.slidesUpdated) {
           $scope.slides = $scope.nextSlides;
           $scope.slidesUpdated = false;
         }
+        $scope.currentIndex = 0;
       }
-    }, 5000);
+    }, $scope.slides[$scope.currentIndex].duration ? $scope.slides[$scope.currentIndex].duration : 5000);
   };
 
   var updateSlideShow = function updateSlideShow(data) {
