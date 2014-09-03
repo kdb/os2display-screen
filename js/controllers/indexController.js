@@ -10,6 +10,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socke
   $scope.currentIndex = 0;
   $scope.running = false;
   $scope.interval = null;
+  $scope.slidesUpdated = false;
 
   /**
    * Start the slideshow.
@@ -34,11 +35,14 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socke
     }, $scope.slides[$scope.currentIndex].duration ? $scope.slides[$scope.currentIndex].duration : 5000);
   };
 
+  /**
+   * Set the next slides to show.
+   * @param data
+   */
   var updateSlideShow = function updateSlideShow(data) {
     $scope.nextSlides = data.slides;
     $scope.slidesUpdated = true;
   };
-
 
   // Connect to the backend via sockets.
   socketFactory.start();
