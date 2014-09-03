@@ -19,7 +19,9 @@ ikApp.directive('ikSlide', function() {
         }
 
         scope.ikSlide = scope.slides[val];
-        scope.ikSlide.options.image = window.config.backend.address + scope.ikSlide.options.image;
+
+        // Only show first image in array.
+        scope.ikSlide.currentImage = (scope.ikSlide.imageUrls[scope.ikSlide.options.images[0]]);
 
         // Setup the inline styling
         scope.theStyle = {
