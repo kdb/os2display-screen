@@ -10,7 +10,7 @@ window.config = {
   },
   // Backend to connect to.
   backend: {
-    address: 'http://service.indholdskanalen.vm/'
+    address: 'https://service.indholdskanalen.vm/'
   },
   // If cookie is secure it's only send over https.
   cookie: {
