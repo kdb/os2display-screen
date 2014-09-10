@@ -20,6 +20,10 @@ ikApp.directive('ikSlide', function() {
 
         scope.ikSlide = scope.slides[val];
 
+        if (!scope.ikSlide) {
+          return;
+        }
+
         // Only show first image in array.
         scope.ikSlide.currentImage = (scope.ikSlide.imageUrls[scope.ikSlide.options.images[0]]);
 

@@ -2,15 +2,39 @@
  * @file
  * Main controller for the application.
  */
-ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socketFactory', function ($scope, $rootScope, $interval, socketFactory) {
+ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socketFactory', function ($scope, $rootScope, $timeout, socketFactory) {
   $scope.activationCode = '';
   $scope.step = 'init';
   $scope.slides = [];
   $scope.nextSlides = [];
-  $scope.currentIndex = 0;
+  $scope.currentIndex = null;
   $scope.running = false;
-  $scope.interval = null;
+  $scope.timeout = null;
   $scope.slidesUpdated = false;
+
+  /**
+   * Display the current slide.
+   * Call next slide.
+   *
+   * Include 2 seconds in timeout for fade in/outs.
+   */
+  var displaySlide = function() {
+    $scope.timeout = $timeout(function() {
+      $scope.currentIndex++;
+
+      if ($scope.currentIndex >= $scope.slides.length) {
+        if ($scope.slidesUpdated && $scope.slides !== $scope.nextSlides) {
+          $scope.currentIndex = null;
+          $scope.slides = $scope.nextSlides;
+        }
+
+        $scope.currentIndex = 0;
+        $scope.slidesUpdated = false;
+      }
+
+      displaySlide();
+    }, ($scope.slides[$scope.currentIndex].duration + 2) * 1000);
+  }
 
   /**
    * Start the slideshow.
@@ -23,16 +47,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socke
 
     $scope.running = true;
 
-    $scope.interval = $interval(function() {
-      $scope.currentIndex++;
-      if ($scope.currentIndex >= $scope.slides.length) {
-        if ($scope.slidesUpdated) {
-          $scope.slides = $scope.nextSlides;
-          $scope.slidesUpdated = false;
-        }
-        $scope.currentIndex = 0;
-      }
-    }, $scope.slides[$scope.currentIndex].duration ? $scope.slides[$scope.currentIndex].duration : 5000);
+    displaySlide();
   };
 
   /**
@@ -67,11 +82,16 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$interval', 'socke
     else {
       // The show was not running, so update the slides and start the show.
       $scope.$apply(function () {
+        $scope.step = 'show-content';
         $scope.slides = data.slides;
 
-        startSlideShow();
+        // Make sure the slides have been loaded. Then start the show.
+        $timeout(function() {
+          $scope.currentIndex = 0;
 
-        $scope.step = 'show-content';
+          startSlideShow();
+        }, 1000);
+
       });
     }
   });
