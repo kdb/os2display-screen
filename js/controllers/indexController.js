@@ -2,7 +2,7 @@
  * @file
  * Main controller for the application.
  */
-ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socketFactory', function ($scope, $rootScope, $timeout, socketFactory) {
+ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socketFactory', 'cssInjector', function ($scope, $rootScope, $timeout, socketFactory, cssInjector) {
   $scope.activationCode = '';
   $scope.step = 'init';
   $scope.slides = [];
@@ -11,6 +11,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
   $scope.running = false;
   $scope.timeout = null;
   $scope.slidesUpdated = false;
+
+
+  cssInjector.add(window.config.backend.address + 'css/styles.css');
 
   /**
    * Display the current slide.

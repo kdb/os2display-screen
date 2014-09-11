@@ -1,1 +1,1 @@
-var ikApp = angular.module('ikApp', ['ngAnimate']);
+var ikApp = angular.module('ikApp', ['ngAnimate', 'angular.css.injector']);
