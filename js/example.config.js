@@ -1,12 +1,12 @@
 window.config = {
   // Used to activate screen (rest API) and load resources.
   resource: {
-    server: '//localhost/',
+    server: '//indholdskanalen.vm/',
     uri: 'proxy'
   },
   // Used by web-socket.
   ws: {
-    server: '//localhost:3000/'
+    server: 'https://indholdskanalen.vm/'
   },
   // Backend to connect to.
   backend: {
@@ -14,6 +14,6 @@ window.config = {
   },
   // If cookie is secure it's only send over https.
   cookie: {
-    secure: true
+    secure: false
   }
 }
