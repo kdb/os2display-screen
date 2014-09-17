@@ -47,7 +47,7 @@
   </div>
 
   <div data-ng-show="step == 'show-content'">
-    <div data-ng-repeat="slide in slides" data-ng-show="currentIndex == $index" class="slide">
+    <div data-ng-repeat="slide in slides" data-ng-show="currentIndex === $index" class="slide">
       <ik-slide ik-index="{{$index}}"></ik-slide>
     </div>
   </div>

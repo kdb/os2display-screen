@@ -16,39 +16,69 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
   cssInjector.add(window.config.backend.address + 'css/styles.css');
 
   /**
+   * Register a one time event listener.
+   * @param node
+   * @param type
+   * @param callback
+   */
+  var registerOnetimeEventListener = function registerOnetimeEventListener(node, type, callback) {
+    // create event
+    node.addEventListener(type, function(e) {
+      // remove event
+      e.target.removeEventListener(e.type, arguments.callee);
+      // call handler
+      return callback(e);
+    });
+  }
+
+  /**
    * Display the current slide.
    * Call next slide.
    *
    * Include 2 seconds in timeout for fade in/outs.
    */
   var displaySlide = function() {
-    $scope.timeout = $timeout(function() {
-      $scope.currentIndex++;
+    var slide = $scope.slides[$scope.currentIndex];
 
-      if ($scope.currentIndex >= $scope.slides.length) {
-        if ($scope.slidesUpdated && $scope.slides !== $scope.nextSlides) {
-          $scope.currentIndex = null;
-          $scope.slides = $scope.nextSlides;
-        }
+    if (slide.template === 'only-video') {
+      slide.currentVideo = {
+        "mp4" : slide.videoUrls[slide.options.videos[0]].mp4,
+        "ogg" : slide.videoUrls[slide.options.videos[0]].ogg
+      };
 
-        $scope.currentIndex = 0;
-        $scope.slidesUpdated = false;
+      $timeout(function() {
+        var el = angular.element(document.querySelector('#videoPlayer'))[0];
+        el.load();
+        el.muted = true;
+        registerOnetimeEventListener(el, 'ended', function() {
+          $scope.$apply(function() {
+            nextSlide();
+          });
+        });
+        $timeout(function() {
+          el.play();
+        }, 900);
+      }, 100);
+    }
+    else {
+      $scope.timeout = $timeout(function() {
+        nextSlide();
+      }, (slide.duration + 2) * 1000);
+    }
+  };
+
+  var nextSlide = function nextSlide() {
+    $scope.currentIndex++;
+
+    if ($scope.currentIndex >= $scope.slides.length) {
+      if ($scope.slidesUpdated && $scope.slides !== $scope.nextSlides) {
+        $scope.currentIndex = null;
+        $scope.slides = $scope.nextSlides;
       }
 
-      displaySlide();
-    }, ($scope.slides[$scope.currentIndex].duration + 2) * 1000);
-  }
-
-  /**
-   * Start the slideshow.
-   */
-  var startSlideShow = function startSlideShow() {
-    if (angular.isDefined($scope.interval)) {
-      $interval.cancel($scope.interval);
-      $scope.interval = undefined;
+      $scope.currentIndex = 0;
+      $scope.slidesUpdated = false;
     }
-
-    $scope.running = true;
 
     displaySlide();
   };
@@ -92,9 +122,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $timeout(function() {
           $scope.currentIndex = 0;
 
-          startSlideShow();
+          $scope.running = true;
+          displaySlide();
         }, 1000);
-
       });
     }
   });
