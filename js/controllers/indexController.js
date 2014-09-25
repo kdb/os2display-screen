@@ -87,21 +87,28 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           "ogg" : slide.videoUrls[slide.options.videos[0]].ogg
         };
 
+        // Allow slide.currentVideo to be set.
         $timeout(function() {
           var el = angular.element(document.querySelector('#videoPlayer'))[0];
+          // Load the video.
           el.load();
+          // Turn music off.
           el.muted = true;
+          // When the video is done, load next slide.
           registerOnetimeEventListener(el, 'ended', function() {
             $scope.$apply(function() {
               nextSlide();
             });
           });
+          // Wait 0.9 seconds to allow fade in to be finished.
           $timeout(function() {
             el.play();
           }, 900);
         }, 100);
       }
       else {
+        // Wait for slide duration, then show next slide.
+        // + 2 seconds to account for fade in/outs.
         $scope.timeout = $timeout(function() {
           nextSlide();
         }, (slide.duration + 2) * 1000);
