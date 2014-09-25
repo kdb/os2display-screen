@@ -53,7 +53,15 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $scope.slidesUpdated = false;
       }
 
-      displaySlide();
+      // Ignore if outside of schedule.
+      var now = new Date().getTime() / 1000;
+      var slide = $scope.slides[$scope.currentIndex];
+      if ((slide.schedule_from !== null && now < slide.schedule_from) || (slide.schedule_to !== null && now > slide.schedule_to)) {
+        nextSlide();
+      }
+      else {
+        displaySlide();
+      }
     };
 
     /**
