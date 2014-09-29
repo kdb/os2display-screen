@@ -53,7 +53,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $scope.slidesUpdated = false;
       }
 
+      if ($scope.slides.length <= 0) {
+        $timeout(nextSlide, 5000);
+        return;
+      }
+
       // Ignore if outside of schedule.
+      // @TODO: Handle non-empty slides array, with no slides to show (because of outside of schedule)
       var now = new Date().getTime() / 1000;
       var slide = $scope.slides[$scope.currentIndex];
       if ((slide.schedule_from !== null && now < slide.schedule_from) || (slide.schedule_to !== null && now > slide.schedule_to)) {
