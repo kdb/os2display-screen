@@ -1,8 +1,6 @@
-<div class="manual-calendar" data-ng-style="{'background-color': ikSlide.options.bgcolor, 'width': theStyle.width, 'height': theStyle.height, 'font-size': theStyle.fontsize, 'background-image': 'url(' + ikSlide.currentImage + ')'}">
+<div class="manual-calendar" data-ng-style="{'background-color': ikSlide.options.bgcolor, 'width': theStyle.width, 'height': theStyle.height, 'font-size': theStyle.fontsize, 'background-image': 'url(' + ikSlide.currentImage + ')', 'position': 'relative'}">
   <div class="manual-calendar--text-inner" data-ng-style="{'background-color': ikSlide.options.textbgcolor, 'color': ikSlide.options.textcolor}">
-    <div class="manual-calendar--edit-box-settings" ng-click="editor.toggleTextEditor()"></div>
-    <textarea auto-grow class="manual-calendar--header has-placeholder" data-ng-trim="false" placeholder="Tilføj en overskrift" data-ng-model="ikSlide.options.headline" spellcheck="false" data-ng-style="{'color': ikSlide.options.textcolor}" font-size="{{ikSlide.options.fontsize}}">
-    </textarea>
+    <h1 class="manual-calendar--header">{{ikSlide.options.headline}}</h1>
     <div class="manual-calendar--events">
       <div class="manual-calendar--event" ng-repeat="event in ikSlide.options.eventitems | limitTo : ikSlide.options.displayitems | activeEvents" data-ng-style="{'border-color': ikSlide.options.textcolor}">
         <div class="manual-calendar--title">
@@ -22,6 +20,4 @@
       </div>
     </div>
   </div>
-  <div class="manual-calendar--edit-content-settings" ng-click="editor.toggleManualCalendarEditor()"></div>
-  <div class="manual-calendar--edit-image-settings" ng-click="editor.toggleBackgroundEditor()"></div>
 </div>
