@@ -9,6 +9,8 @@
  */
 ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socketFactory', 'cssInjector',
   function ($scope, $rootScope, $timeout, socketFactory, cssInjector) {
+    "use strict";
+
     $scope.activationCode = '';
     $scope.step = 'init';
     $scope.slides = [];
@@ -23,19 +25,21 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
     /**
      * Register a one time event listener.
+     *
      * @param node
      * @param type
      * @param callback
      */
     var registerOnetimeEventListener = function registerOnetimeEventListener(node, type, callback) {
-      // create event
-      node.addEventListener(type, function(e) {
-        // remove event
-        e.target.removeEventListener(e.type, arguments.callee);
-        // call handler
-        return callback(e);
+      // Create event.
+      node.addEventListener(type, function onceListener(event) {
+        // Remove event.
+        event.target.removeEventListener(event.type, onceListener);
+
+        // Call handler.
+        return callback(event);
       });
-    }
+    };
 
     /**
      * Set the next slide, and call displaySlide.
@@ -190,7 +194,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     $scope.submitActivationCode = function() {
       $scope.step = 'loading';
       socketFactory.activateScreenAndConnect($scope.activationCode);
-    }
-
+    };
   }
 ]);
