@@ -27,8 +27,16 @@ ikApp.directive('ikSlide', function() {
         }
 
         // Only show first image in array.
-        console.log(scope.ikSlide);
-        scope.ikSlide.currentImage = scope.ikSlide.media[0];
+        if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length >= 0) {
+          scope.ikSlide.currentImage = scope.ikSlide.media[0];
+        }
+        else if (scope.ikSlide.media_type === 'video') {
+          // Set current video variable to path to video files.
+          scope.ikSlide.currentVideo = {
+            "mp4": scope.ikSlide.media[0].mp4,
+            "ogg": scope.ikSlide.media[0].ogg
+          };
+        }
 
         // Setup the inline styling
         scope.theStyle = {
@@ -36,8 +44,6 @@ ikApp.directive('ikSlide', function() {
           height: "100%",
           fontsize: scope.ikSlide.options.fontsize + "px"
         };
-
-        alert(scope.$last);
 
         scope.templateURL = '/ik-templates/' + scope.ikSlide.template + '/' + scope.ikSlide.template + '.html';
       });

@@ -98,16 +98,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       }
 
       // Handle video input or regular slide.
-      // @TODO: do not base this on template name, but media type instead.
-      if (slide.template === 'only-video') {
-        if (slide.options.videos.length <= 0) {
+      if (slide.media_type === 'video') {
+        if (slide.media.length <= 0) {
           nextSlide();
         }
-
-        slide.currentVideo = {
-          "mp4" : slide.videoUrls[slide.options.videos[0]].mp4,
-          "ogg" : slide.videoUrls[slide.options.videos[0]].ogg
-        };
 
         // Allow slide.currentVideo to be set.
         $timeout(function() {
