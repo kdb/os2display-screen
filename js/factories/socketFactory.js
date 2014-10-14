@@ -1,14 +1,19 @@
+/**
+ * Web-socket factory using socket.io to communicate with the middleware.
+ */
 ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
+  "use strict";
+
   var factory = {};
 
   // Get the load configuration object.
   var config = window.config;
 
   // Communication with web-socket.
-  var socket = undefined;
+  var socket;
 
   // Global variable with token cookie.
-  var token_cookie = undefined;
+  var token_cookie;
 
   // Defines the application state.
   var app_initialized = true;
@@ -21,21 +26,20 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   var Cookie = (function() {
     var Cookie = function(name) {
       var self = this;
-      var name = name;
 
-      // Get token.
+      // Get token from the cookie.
       self.get = function get() {
         var regexp = new RegExp("(?:^" + name + "|\s*"+ name + ")=(.*?)(?:;|$)", "g");
-
         var result = regexp.exec(document.cookie);
+
         return (result === null) ? undefined : result[1];
-      }
+      };
 
       // Set token
       self.set = function set(value, expire) {
         var cookie = name + '=' + escape(value) + ';';
 
-        if (expire == undefined) {
+        if (expire === undefined) {
           expire = 'Thu, 01 Jan 2018 00:00:00 GMT';
         }
         cookie += 'expires=' + expire + ';';
@@ -49,13 +53,13 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
         }
 
         document.cookie = cookie;
-      }
+      };
 
       // Remove the cookie by expiring it.
       self.remove = function remove() {
         self.set('', 'Thu, 01 Jan 1970 00:00:00 GMT');
-      }
-    }
+      };
+    };
 
     return Cookie;
   })();
@@ -107,7 +111,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   /**
    * Connect to the web-socket.
    *
-   * @param string token
+   * @param token
    *   JWT authentication token from the activation request.
    */
   var connect = function connect(token) {
@@ -143,13 +147,12 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
 
     // Ready event - if the server accepted the ready command.
     socket.on('ready', function (data) {
-      if (data.statusCode != 200) {
-        // Screen not found will reload applicaton on dis-connection event.
+      if (data.statusCode !== 200) {
+        // Screen not found will reload application on dis-connection event.
         if (data.statusCode !== 404) {
           if (window.console) {
             console.log('Code: ' + data.statusCode + ' - Connection error');
           }
-          return;
         }
       }
       else {
@@ -160,7 +163,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
 
     // Pause event - if the server accepted the pause command.
     socket.on('pause', function (data) {
-      if (data.statusCode != 200) {
+      if (data.statusCode !== 200) {
         // @todo: error on pause command.
       }
     });
@@ -215,12 +218,12 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
         // We reached our target server, but it returned an error
         alert('Activation could not be performed.');
       }
-    }
+    };
 
     request.onerror = function(exception) {
       // There was a connection error of some sort
       alert('Activation request failed.');
-    }
+    };
 
     // Send the request.
     request.send(JSON.stringify({ activationCode: activationCode }));
