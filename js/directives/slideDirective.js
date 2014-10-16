@@ -34,7 +34,8 @@ ikApp.directive('ikSlide', function() {
           // Set current video variable to path to video files.
           scope.ikSlide.currentVideo = {
             "mp4": scope.ikSlide.media[0].mp4,
-            "ogg": scope.ikSlide.media[0].ogg
+            "ogg": scope.ikSlide.media[0].ogg,
+            "webm": scope.ikSlide.media[0].webm
           };
         }
 
