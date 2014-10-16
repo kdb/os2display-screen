@@ -105,13 +105,17 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
         // Allow slide.currentVideo to be set.
         $timeout(function() {
-          var el = angular.element(document.querySelector('#videoPlayer'))[0];
+          var video = videojs('videoPlayer', {
+            "controls": false,
+            "autoplay": false,
+            "preload": "auto"
+          });
 
           // Load the video.
-          el.load();
+          video.load();
 
           // When the video is done, load next slide.
-          registerOnetimeEventListener(el, 'ended', function() {
+          video.one('ended', function() {
             $scope.$apply(function() {
               nextSlide();
             });
@@ -119,7 +123,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
           // Wait 0.9 seconds to allow fade in to be finished.
           $timeout(function() {
-            el.play();
+            video.play();
           }, 900);
         }, 100);
       }
@@ -166,8 +170,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $scope.$apply(function () {
           $scope.step = 'show-content';
           $scope.slides = data.slides;
-
-          console.log(data);
 
           // Make sure the slides have been loaded. Then start the show.
           $timeout(function() {
