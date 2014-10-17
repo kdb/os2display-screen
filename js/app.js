@@ -15,6 +15,6 @@ var ikApp = angular.module('ikApp', ['ngAnimate', 'angular.css.injector']).confi
     // Allow same origin resource loads.
     'self',
     // Allow loading from outer templates domain.
-    window.config.backend.address + '**'
+    '**'
   ]);
 });

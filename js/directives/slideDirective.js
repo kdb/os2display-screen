@@ -45,10 +45,8 @@ ikApp.directive('ikSlide', function() {
           height: "100%",
           fontsize: scope.ikSlide.options.fontsize + "px"
         };
-
-        scope.templateURL = '/ik-templates/' + scope.ikSlide.template + '/' + scope.ikSlide.template + '.html';
       });
     },
-    template: '<div data-ng-include="" src="templateURL"></div>'
+    template: '<div data-ng-include="" src="ikSlide.template_path"></div>'
   };
 });
