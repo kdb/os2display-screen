@@ -30,32 +30,6 @@
   <script src="js/controllers/indexController.js"></script>
 </head>
 <body data-ng-controller="IndexController">
-
-  <div data-ng-show="step == 'init'">
-    Initialising...
-  </div>
-
-  <div data-ng-show="step == 'not-activated'">
-    <h1>Screen activation</h1>
-    <form data-ng-submit="submitActivationCode()" data-ng-cloak="">
-      <input data-ng-model="activationCode" type="text" placeholder="Activation code" required autofocus>
-      <button type="submit">Activate</button>
-    </form>
-  </div>
-
-  <div data-ng-show="step == 'awaiting-content'">
-    Awaiting content...
-  </div>
-
-  <div data-ng-show="step == 'loading'">
-    Loading...
-  </div>
-
-  <div data-ng-show="step == 'show-content'">
-    <div data-ng-repeat="slide in slides" data-ng-show="currentIndex === $index" class="slide">
-      <ik-slide ik-index="{{$index}}"></ik-slide>
-    </div>
-  </div>
-
+  <div data-ng-include="" src="'/partials/' + step + '.html'"></div>
 </body>
 </html>

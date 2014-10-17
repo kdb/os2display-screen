@@ -23,22 +23,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     // Insert stylesheet from the backend.
     cssInjector.add(window.config.backend.address + 'css/styles.css');
 
-    /**
-     * Register a one time event listener.
-     *
-     * @param node
-     * @param type
-     * @param callback
-     */
-    var registerOnetimeEventListener = function registerOnetimeEventListener(node, type, callback) {
-      // Create event.
-      node.addEventListener(type, function onceListener(event) {
-        // Remove event.
-        event.target.removeEventListener(event.type, onceListener);
-
-        // Call handler.
-        return callback(event);
-      });
+    var slideScheduled = function slideScheduled(slide) {
+      var now = new Date().getTime() / 1000;
+      return (slide.schedule_from !== null && now <= slide.schedule_from) || (slide.schedule_to !== null && now > slide.schedule_to);
     };
 
     /**
@@ -49,7 +36,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
       if ($scope.currentIndex >= $scope.slides.length) {
         if ($scope.slidesUpdated && $scope.slides !== $scope.nextSlides) {
-          $scope.currentIndex = null;
           $scope.slides = $scope.nextSlides;
         }
 
@@ -57,17 +43,30 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $scope.slidesUpdated = false;
       }
 
+      // If slides array is empty, wait 5 seconds, try again.
       if ($scope.slides.length <= 0) {
         $timeout(nextSlide, 5000);
         return;
       }
 
       // Ignore if outside of schedule.
-      // @TODO: Handle non-empty slides array, with no slides to show (because of outside of schedule)
-      var now = new Date().getTime() / 1000;
-      var slide = $scope.slides[$scope.currentIndex];
-      if ((slide.schedule_from !== null && now < slide.schedule_from) || (slide.schedule_to !== null && now > slide.schedule_to)) {
-        nextSlide();
+      if (slideScheduled($scope.slides[$scope.currentIndex])) {
+        // Check if there are any slides scheduled.
+        var scheduleNotEmpty = false;
+        $scope.slides.forEach(function(element) {
+          if (slideScheduled(element)) {
+            scheduleNotEmpty = true;
+          }
+        });
+
+        if (scheduleNotEmpty) {
+          nextSlide();
+        } else {
+          // If no slide scheduled, wait 5 second, try again.
+          $timeout(function() {
+            nextSlide();
+          }, 5000);
+        }
       }
       else {
         displaySlide();
