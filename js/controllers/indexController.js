@@ -11,7 +11,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
   function ($scope, $rootScope, $timeout, socketFactory, cssInjector) {
     "use strict";
 
-    $scope.activationCode = '';
     $scope.step = 'init';
     $scope.slides = [];
     $scope.nextSlides = [];
@@ -187,11 +186,5 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $scope.step = 'not-activated';
       });
     });
-
-    // Submit handler for the activation screen.
-    $scope.submitActivationCode = function() {
-      $scope.step = 'loading';
-      socketFactory.activateScreenAndConnect($scope.activationCode);
-    };
   }
 ]);
