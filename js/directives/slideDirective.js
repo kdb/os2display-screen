@@ -1,5 +1,11 @@
 /**
  * @file
+ * Contains the slide directive.
+ */
+
+"use strict";
+
+/**
  * Directive to insert html for a slide.
  *
  * @param ik-id: the id of the slide.
@@ -7,23 +13,15 @@
  */
 ikApp.directive('ikSlide', ['cssInjector', '$timeout',
   function(cssInjector, $timeout) {
-    "use strict";
-
     return {
       restrict: 'E',
-      scope: true,
+      scope: {
+        ikSlide: '='
+      },
       link: function(scope, element, attrs) {
-        scope.templateURL = '';
-
         // Observe for changes to the ik-id attribute. Setup slide when ik-id is set.
-        attrs.$observe('ikIndex', function(val) {
+        attrs.$observe('ikSlide', function(val) {
           if (!val) {
-            return;
-          }
-
-          scope.ikSlide = scope.slides[val];
-
-          if (!scope.ikSlide) {
             return;
           }
 
@@ -47,10 +45,7 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
             fontsize: scope.ikSlide.options.fontsize + "px"
           };
 
-          cssInjector.remove(scope.ikSlide.css_path);
-          $timeout(function() {
-            cssInjector.add(scope.ikSlide.css_path);
-          }, 10);
+          cssInjector.add(scope.ikSlide.css_path);
         });
       },
       template: '<div data-ng-include="" src="ikSlide.template_path"></div>'

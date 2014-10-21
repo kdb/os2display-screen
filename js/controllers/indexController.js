@@ -3,25 +3,32 @@
  * Contains the index controller.
  */
 
+"use strict";
+
 /**
  * Index Controller.
  * Controls the display of slides.
  */
-ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socketFactory', 'cssInjector',
-  function ($scope, $rootScope, $timeout, socketFactory, cssInjector) {
-    "use strict";
-
+ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socketFactory',
+  function ($scope, $rootScope, $timeout, socketFactory) {
     $scope.step = 'init';
-    $scope.slides = [];
-    $scope.nextSlides = [];
+    $scope.slides = [
+      [],
+      []
+    ];
     $scope.currentIndex = null;
+    $scope.arrayIndex = 0;
+
     $scope.running = false;
     $scope.timeout = null;
     $scope.slidesUpdated = false;
 
-    // Insert stylesheet from the backend.
-    //cssInjector.add(window.config.backend.address + 'css/styles.css');
-
+    /**
+     * Returns true if the slide is scheduled to be shown now.
+     *
+     * @param slide
+     * @returns {boolean}
+     */
     var slideScheduled = function slideScheduled(slide) {
       var now = new Date().getTime() / 1000;
       return (slide.schedule_from !== null && now <= slide.schedule_from) || (slide.schedule_to !== null && now > slide.schedule_to);
@@ -33,26 +40,29 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     var nextSlide = function nextSlide() {
       $scope.currentIndex++;
 
-      if ($scope.currentIndex >= $scope.slides.length) {
-        if ($scope.slidesUpdated && $scope.slides !== $scope.nextSlides) {
-          $scope.slides = $scope.nextSlides;
+      var otherArrayIndex = ($scope.arrayIndex + 1) % 2;
+
+      if ($scope.currentIndex >= $scope.slides[$scope.arrayIndex].length) {
+        if ($scope.slidesUpdated) {
+          $scope.currentIndex = -1;
+          $scope.arrayIndex = otherArrayIndex;
+          $scope.slidesUpdated = false;
         }
 
         $scope.currentIndex = 0;
-        $scope.slidesUpdated = false;
       }
 
       // If slides array is empty, wait 5 seconds, try again.
-      if ($scope.slides.length <= 0) {
+      if ($scope.slides[$scope.arrayIndex].length <= 0) {
         $timeout(nextSlide, 5000);
         return;
       }
 
       // Ignore if outside of schedule.
-      if (slideScheduled($scope.slides[$scope.currentIndex])) {
+      if (!slideScheduled($scope.slides[$scope.arrayIndex][$scope.currentIndex])) {
         // Check if there are any slides scheduled.
         var scheduleNotEmpty = false;
-        $scope.slides.forEach(function(element) {
+        $scope.slides[$scope.arrayIndex].forEach(function(element) {
           if (slideScheduled(element)) {
             scheduleNotEmpty = true;
           }
@@ -79,14 +89,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      * Include 2 seconds in timeout for fade in/outs.
      */
     var displaySlide = function() {
-      var slide = $scope.slides[$scope.currentIndex];
+      var slide = $scope.slides[$scope.arrayIndex][$scope.currentIndex];
 
       // Handle empty slides array.
       if (slide === undefined) {
-        if ($scope.nextSlides.length > 0) {
-          $scope.slides = $scope.nextSlides;
-        }
-
         // Wait five seconds and try again.
         $timeout(function() {
           displaySlide();
@@ -139,7 +145,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      * @param data
      */
     var updateSlideShow = function updateSlideShow(data) {
-      $scope.nextSlides = data.slides;
+      var otherArrayIndex = ($scope.arrayIndex + 1) % 2;
+
+      $scope.slides[otherArrayIndex] = data.slides;
       $scope.slidesUpdated = true;
     };
 
@@ -167,7 +175,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         // The show was not running, so update the slides and start the show.
         $scope.$apply(function () {
           $scope.step = 'show-content';
-          $scope.slides = data.slides;
+          $scope.slides[0] = data.slides;
+          $scope.slides[1] = data.slides;
 
           // Make sure the slides have been loaded. Then start the show.
           $timeout(function() {

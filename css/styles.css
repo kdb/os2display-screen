@@ -14,3 +14,20 @@
 .slide.ng-hide {
   opacity:0;
 }
+
+.slide-block {
+  display: block!important;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-transition: opacity 1s ease-in;
+  -moz-transition: opacity 1s ease-in;
+  -o-transition: opacity 1s ease-in;
+  transition: opacity 1s ease-in;
+}
+
+.slide-block.ng-hide {
+  opacity: 0;
+}
