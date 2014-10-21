@@ -20,7 +20,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     $scope.slidesUpdated = false;
 
     // Insert stylesheet from the backend.
-    cssInjector.add(window.config.backend.address + 'css/styles.css');
+    //cssInjector.add(window.config.backend.address + 'css/styles.css');
 
     var slideScheduled = function slideScheduled(slide) {
       var now = new Date().getTime() / 1000;
