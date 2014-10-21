@@ -31,7 +31,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      */
     var slideScheduled = function slideScheduled(slide) {
       var now = new Date().getTime() / 1000;
-      return (slide.schedule_from !== null && now <= slide.schedule_from) || (slide.schedule_to !== null && now > slide.schedule_to);
+      return (!slide.schedule_from && !slide.schedule_to) ||
+              (slide.schedule_from !== null && now >= slide.schedule_from && slide.schedule_to !== null && now < slide.schedule_to);
     };
 
     /**
@@ -61,17 +62,18 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       // Ignore if outside of schedule.
       if (!slideScheduled($scope.slides[$scope.arrayIndex][$scope.currentIndex])) {
         // Check if there are any slides scheduled.
-        var scheduleNotEmpty = false;
+        var scheduleEmpty = true;
         $scope.slides[$scope.arrayIndex].forEach(function(element) {
           if (slideScheduled(element)) {
-            scheduleNotEmpty = true;
+            scheduleEmpty = false;
           }
         });
 
-        if (scheduleNotEmpty) {
+        if (!scheduleEmpty) {
           nextSlide();
         } else {
-          // If no slide scheduled, wait 5 second, try again.
+          // If no slide scheduled, go to end of array, wait 5 second, try again.
+          $scope.currentIndex = $scope.slides[$scope.arrayIndex].length;
           $timeout(function() {
             nextSlide();
           }, 5000);
@@ -180,10 +182,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
           // Make sure the slides have been loaded. Then start the show.
           $timeout(function() {
-            $scope.currentIndex = 0;
+            $scope.currentIndex = -1;
 
             $scope.running = true;
-            displaySlide();
+            nextSlide();
           }, 1000);
         });
       }
