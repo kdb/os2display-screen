@@ -25,7 +25,7 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
             return;
           }
 
-          console.log(scope.ikSlide.media.length);
+          console.log("Media length" + scope.ikSlide.media.length);
 
           // Only show first image in array.
           if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length >= 0) {
