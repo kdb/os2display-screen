@@ -25,18 +25,17 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
             return;
           }
 
-          console.log("Media length" + scope.ikSlide.media.length);
-
           // Only show first image in array.
           if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length >= 0) {
             scope.ikSlide.currentImage = scope.ikSlide.media[0];
           }
           else if (scope.ikSlide.media_type === 'video') {
             // Set current video variable to path to video files.
-              console.log("debug");
-              scope.ikSlide.currentVideo.mp4 = scope.ikSlide.media.mp4;
-              scope.ikSlide.currentVideo.ogg = scope.ikSlide.media.ogv;
-              scope.ikSlide.currentVideo.webm = scope.ikSlide.media.webm;
+            scope.ikSlide.currentVideo = {
+              "mp4": scope.ikSlide.media.mp4,
+              "ogg": scope.ikSlide.media.ogv,
+              "webm": scope.ikSlide.media.webm
+            };
           }
 
           // Setup the inline styling
