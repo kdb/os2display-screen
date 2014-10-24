@@ -31,8 +31,9 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
           }
           else if (scope.ikSlide.media_type === 'video' && scope.ikSlide.media.length > 0) {
             // Set current video variable to path to video files.
+              console.log("debug");
               scope.ikSlide.currentVideo.mp4 = scope.ikSlide.media[0].mp4;
-              scope.ikSlide.currentVideo.ogg = scope.ikSlide.media[0].ogg;
+              scope.ikSlide.currentVideo.ogg = scope.ikSlide.media[0].ogv;
               scope.ikSlide.currentVideo.webm = scope.ikSlide.media[0].webm;
           }
 
