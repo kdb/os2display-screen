@@ -25,11 +25,13 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
             return;
           }
 
+          console.log(scope.ikSlide.media.length);
+
           // Only show first image in array.
           if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length >= 0) {
             scope.ikSlide.currentImage = scope.ikSlide.media[0];
           }
-          else if (scope.ikSlide.media_type === 'video' && scope.ikSlide.media.length > 0) {
+          else if (scope.ikSlide.media_type === 'video' && scope.ikSlide.media.length >= 0) {
             // Set current video variable to path to video files.
               console.log("debug");
               scope.ikSlide.currentVideo.mp4 = scope.ikSlide.media[0].mp4;
