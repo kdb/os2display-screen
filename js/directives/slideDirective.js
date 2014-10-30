@@ -38,6 +38,8 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
             };
           }
 
+          scope.ikSlide.currentLogo = scope.ikSlide.logo;
+
           // Setup the inline styling
           scope.theStyle = {
             width: "100%",
