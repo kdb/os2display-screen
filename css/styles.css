@@ -1,3 +1,8 @@
+body {
+  cursor: none;
+  overflow: hidden;
+}
+
 .slide {
   display: block!important;
   position: absolute;
