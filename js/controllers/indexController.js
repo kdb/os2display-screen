@@ -111,10 +111,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
         // Allow slide.currentVideo to be set.
         $timeout(function() {
-          var video = videojs('videoPlayer' + slide.id, {
+          var video = videojs('videoPlayer' + slide.uniqueId, {
             "controls": false,
             "autoplay": false,
-            "preload": "none"
+            "preload": "auto"
           });
 
           // Load the video.

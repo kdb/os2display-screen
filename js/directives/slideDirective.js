@@ -16,9 +16,15 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
     return {
       restrict: 'E',
       scope: {
-        ikSlide: '='
+        ikSlide: '=',
+        ikArrayId: '=',
+        ikId: '='
       },
       link: function(scope, element, attrs) {
+        attrs.$observe('ikArrayId', function(val) {
+          scope.ikSlide.uniqueId = scope.ikArrayId + '-' + scope.ikId + '-' + scope.ikSlide.id;
+        });
+
         // Observe for changes to the ik-id attribute. Setup slide when ik-id is set.
         attrs.$observe('ikSlide', function(val) {
           if (!val) {

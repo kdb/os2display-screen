@@ -1,10 +1,10 @@
 <div data-ng-show="arrayIndex === 0" class="slide-block">
   <div data-ng-repeat="slide in slides[0]" data-ng-show="currentIndex === $index" class="slide">
-    <ik-slide ik-slide="slides[0][$index]"></ik-slide>
+    <ik-slide ik-slide="slide" ik-array-id="arrayIndex" ik-index="$index"></ik-slide>
   </div>
 </div>
 <div data-ng-show="arrayIndex === 1" class="slide-block">
   <div data-ng-repeat="slide in slides[1]" data-ng-show="currentIndex === $index" class="slide">
-    <ik-slide ik-slide="slides[1][$index]"></ik-slide>
+    <ik-slide ik-slide="slide" ik-array-id="arrayIndex" ik-index="$index"></ik-slide>
   </div>
 </div>
