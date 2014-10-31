@@ -166,18 +166,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             };
           });
 
-          // Set the progressbar animation.
-          var dur = video.duration();
-          $scope.progressBarStyle = {
-            "overflow": "hidden",
-            "-webkit-transition": "width " + dur  + "s linear",
-            "-moz-transition": "width " + dur + "s linear",
-            "-o-transition": "width " + dur + "s linear",
-            "transition": "width " + dur + "s linear",
-            "width": "100%"
-          };
-
-
           // Wait 0.9 seconds to allow fade in to be finished.
           $timeout(function() {
             video.play();
