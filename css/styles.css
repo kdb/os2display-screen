@@ -36,3 +36,22 @@ body {
 .slide-block.ng-hide {
   opacity: 0;
 }
+
+.progress-box {
+  background-color: rgba(100,100,100,0.4);
+  color: white;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.progress-bar {
+  background-color: rgba(100,100,100,0.4);
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+
+  width:0;
+  z-index: 1000;
+}

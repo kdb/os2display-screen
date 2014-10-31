@@ -23,6 +23,12 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     $scope.timeout = null;
     $scope.slidesUpdated = false;
 
+    var fadeTime = 1000;
+
+    // Used by progress bar
+    $scope.progressBoxElements = 0;
+    $scope.progressBoxElementsIndex = 0;
+
     /**
      * Returns true if the slide is scheduled to be shown now.
      *
@@ -33,6 +39,18 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       var now = new Date().getTime() / 1000;
       return (!slide.schedule_from && !slide.schedule_to) ||
               (slide.schedule_from !== null && now >= slide.schedule_from && slide.schedule_to !== null && now < slide.schedule_to);
+    };
+
+    /**
+     * Reset the progress bar.
+     */
+    var resetProgressBox = function resetProgressBox() {
+      $scope.progressBoxElements = 0;
+      $scope.slides[$scope.arrayIndex].forEach(function(element) {
+        if (slideScheduled(element)) {
+          $scope.progressBoxElements++;
+        }
+      });
     };
 
     /**
@@ -48,6 +66,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           $scope.currentIndex = -1;
           $scope.arrayIndex = otherArrayIndex;
           $scope.slidesUpdated = false;
+
+          resetProgressBox();
         }
 
         $scope.currentIndex = 0;
@@ -91,6 +111,12 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      * Include 2 seconds in timeout for fade in/outs.
      */
     var displaySlide = function() {
+      $scope.progressBoxElementsIndex++;
+
+      $scope.progressBarStyle = {
+        "width": "0"
+      };
+
       var slide = $scope.slides[$scope.arrayIndex][$scope.currentIndex];
 
       // Handle empty slides array.
@@ -127,18 +153,43 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
+          // Set the progressbar animation.
+          var dur = video.duration();
+          $scope.progressBarStyle = {
+            "overflow": "hidden",
+            "-webkit-transition": "width " + dur  + "s linear",
+            "-moz-transition": "width " + dur + "s linear",
+            "-o-transition": "width " + dur + "s linear",
+            "transition": "width " + dur + "s linear",
+            "width": "100%"
+          };
+
           // Wait 0.9 seconds to allow fade in to be finished.
           $timeout(function() {
             video.play();
-          }, 900);
-        }, 100);
+          }, fadeTime - 100);
+        }, fadeTime - 900);
       }
       else {
+        // Set the progress bar animation.
+        $timeout(function() {
+          var dur = slide.duration;
+
+          $scope.progressBarStyle = {
+            "overflow": "hidden",
+            "-webkit-transition": "width " + dur  + "s linear",
+            "-moz-transition": "width " + dur + "s linear",
+            "-o-transition": "width " + dur + "s linear",
+            "transition": "width " + dur + "s linear",
+            "width": "100%"
+          };
+        }, fadeTime);
+
         // Wait for slide duration, then show next slide.
         // + 2 seconds to account for fade in/outs.
         $scope.timeout = $timeout(function() {
           nextSlide();
-        }, (slide.duration + 2) * 1000);
+        }, (slide.duration) * 1000 + fadeTime * 2);
       }
     };
 
@@ -179,6 +230,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           $scope.step = 'show-content';
           $scope.slides[0] = data.slides;
           $scope.slides[1] = data.slides;
+
+          // Reset progress box
+          resetProgressBox();
 
           // Make sure the slides have been loaded. Then start the show.
           $timeout(function() {
