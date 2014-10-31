@@ -46,6 +46,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      */
     var resetProgressBox = function resetProgressBox() {
       $scope.progressBoxElements = 0;
+      $scope.progressBoxElementsIndex = 0;
       $scope.slides[$scope.arrayIndex].forEach(function(element) {
         if (slideScheduled(element)) {
           $scope.progressBoxElements++;
@@ -158,17 +159,20 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
-          var dur = video.duration();
           video.one('play', function() {
-            // Set the progressbar animation.
-            $scope.progressBarStyle = {
-              "overflow": "hidden",
-              "-webkit-transition": "width " + dur  + "s linear",
-              "-moz-transition": "width " + dur + "s linear",
-              "-o-transition": "width " + dur + "s linear",
-              "transition": "width " + dur + "s linear",
-              "width": "100%"
-            };
+            var dur = this.duration();
+
+            $scope.$apply(function() {
+              // Set the progressbar animation.
+              $scope.progressBarStyle = {
+                "overflow": "hidden",
+                "-webkit-transition": "width " + dur  + "s linear",
+                "-moz-transition": "width " + dur + "s linear",
+                "-o-transition": "width " + dur + "s linear",
+                "transition": "width " + dur + "s linear",
+                "width": "100%"
+              };
+            });
           });
 
           // Wait 0.9 seconds to allow fade in to be finished.
