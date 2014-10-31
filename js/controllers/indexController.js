@@ -66,9 +66,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           $scope.currentIndex = -1;
           $scope.arrayIndex = otherArrayIndex;
           $scope.slidesUpdated = false;
-
-          resetProgressBox();
         }
+        resetProgressBox();
 
         $scope.currentIndex = 0;
       }
@@ -149,6 +148,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           // When the video is done, load next slide.
           video.one('ended', function() {
             $scope.$apply(function() {
+              nextSlide();
+            });
+          });
+
+          video.one('error', function() {
+            $scope.$apply(function() {
+              video.stop();
               nextSlide();
             });
           });
