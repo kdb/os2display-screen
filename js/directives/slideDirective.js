@@ -21,6 +21,14 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
         ikIndex: '='
       },
       link: function(scope, element, attrs) {
+        scope.initializeVideo = function initializeVideo() {
+          scope.ikSlide.videojs =videojs('videoPlayer' + scope.ikSlide.uniqueId, {
+            "controls": false,
+            "autoplay": false,
+            "preload": "auto"
+          });
+        };
+
         attrs.$observe('ikArrayId', function(val) {
           scope.ikSlide.uniqueId = scope.ikArrayId + '-' + scope.ikIndex + '-' + scope.ikSlide.id;
         });
@@ -57,18 +65,13 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
 
           $timeout(function() {
             if (scope.ikSlide.media_type === 'video' && !scope.ikSlide.videojs) {
-              var vid = videojs('videoPlayer' + scope.ikSlide.uniqueId, {
-                "controls": false,
-                "autoplay": false,
-                "preload": "auto"
-              });
-
-              scope.ikSlide.videojs = vid;
-
-              // Load the video.
-              vid.load();
+              scope.initializeVideo();
             }
           }, 1000);
+        });
+
+        scope.$on('$destroy', function() {
+          scope.videojs.dispose();
         });
       },
       template: '<div data-ng-include="" src="ikSlide.template_path"></div>'

@@ -172,9 +172,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           video.one('error', function() {
             $scope.$apply(function() {
               nextSlide();
-
-              // Load the video again.
-              video.load();
             });
           });
 
@@ -187,6 +184,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
+          video.load();
           video.play();
         }, fadeTime);
       }
