@@ -54,6 +54,21 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
           };
 
           cssInjector.add(scope.ikSlide.css_path);
+
+          $timeout(function() {
+            if (scope.ikSlide.media_type === 'video' && !scope.ikSlide.videojs) {
+              var vid = videojs('videoPlayer' + scope.ikSlide.uniqueId, {
+                "controls": false,
+                "autoplay": false,
+                "preload": "auto"
+              });
+
+              scope.ikSlide.videojs = vid;
+
+              // Load the video.
+              vid.load();
+            }
+          }, 1000);
         });
       },
       template: '<div data-ng-include="" src="ikSlide.template_path"></div>'

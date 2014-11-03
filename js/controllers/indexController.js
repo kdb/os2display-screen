@@ -55,6 +55,31 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     };
 
     /**
+     * Sets the progress bar style.
+     *
+     * @param duration
+     */
+    var startProgressBar = function startProgressBar(duration) {
+      $scope.progressBarStyle = {
+        "overflow": "hidden",
+        "-webkit-transition": "width " + duration  + "s linear",
+        "-moz-transition": "width " + duration + "s linear",
+        "-o-transition": "width " + duration + "s linear",
+        "transition": "width " + duration + "s linear",
+        "width": "100%"
+      };
+    };
+
+    /**
+     * Resets the progress bar style.
+     */
+    var resetProgressBar = function resetProgressBar() {
+      $scope.progressBarStyle = {
+        "width": "0"
+      };
+    };
+
+    /**
      * Set the next slide, and call displaySlide.
      */
     var nextSlide = function nextSlide() {
@@ -113,9 +138,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     var displaySlide = function() {
       $scope.progressBoxElementsIndex++;
 
-      $scope.progressBarStyle = {
-        "width": "0"
-      };
+      resetProgressBar();
 
       var slide = $scope.slides[$scope.arrayIndex][$scope.currentIndex];
 
@@ -136,64 +159,44 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         }
 
         // Allow slide.currentVideo to be set.
+        var video = slide.videojs;
+
+        // When the video is done, load next slide.
+        video.one('ended', function() {
+          $scope.$apply(function() {
+            nextSlide();
+          });
+        });
+
+        video.one('error', function() {
+          $scope.$apply(function() {
+            nextSlide();
+
+            // Load the video again.
+            video.load();
+          });
+        });
+
+        video.one('play', function() {
+          var dur = this.duration();
+
+          $scope.$apply(function() {
+            // Set the progressbar animation.
+            startProgressBar(dur);
+          });
+        });
+
+        // Wait 0.9 seconds to allow fade in to be finished.
         $timeout(function() {
-          var video = videojs('videoPlayer' + slide.uniqueId, {
-            "controls": false,
-            "autoplay": false,
-            "preload": "auto"
-          });
-
-          // Load the video.
-          video.load();
-
-          // When the video is done, load next slide.
-          video.one('ended', function() {
-            $scope.$apply(function() {
-              nextSlide();
-            });
-          });
-
-          video.one('error', function() {
-            $scope.$apply(function() {
-              nextSlide();
-            });
-          });
-
-          video.one('play', function() {
-            var dur = this.duration();
-
-            $scope.$apply(function() {
-              // Set the progressbar animation.
-              $scope.progressBarStyle = {
-                "overflow": "hidden",
-                "-webkit-transition": "width " + dur  + "s linear",
-                "-moz-transition": "width " + dur + "s linear",
-                "-o-transition": "width " + dur + "s linear",
-                "transition": "width " + dur + "s linear",
-                "width": "100%"
-              };
-            });
-          });
-
-          // Wait 0.9 seconds to allow fade in to be finished.
-          $timeout(function() {
-            video.play();
-          }, fadeTime - 100);
-        }, fadeTime - 900);
+          video.play();
+        }, fadeTime);
       }
       else {
         // Set the progress bar animation.
         $timeout(function() {
           var dur = slide.duration;
 
-          $scope.progressBarStyle = {
-            "overflow": "hidden",
-            "-webkit-transition": "width " + dur  + "s linear",
-            "-moz-transition": "width " + dur + "s linear",
-            "-o-transition": "width " + dur + "s linear",
-            "transition": "width " + dur + "s linear",
-            "width": "100%"
-          };
+          startProgressBar(dur);
         }, fadeTime);
 
         // Wait for slide duration, then show next slide.
