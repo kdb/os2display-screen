@@ -158,36 +158,35 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           nextSlide();
         }
 
-        // Allow slide.currentVideo to be set.
-        var video = slide.videojs;
-
-        // When the video is done, load next slide.
-        video.one('ended', function() {
-          $scope.$apply(function() {
-            nextSlide();
-          });
-        });
-
-        video.one('error', function() {
-          $scope.$apply(function() {
-            nextSlide();
-
-            // Load the video again.
-            video.load();
-          });
-        });
-
-        video.one('play', function() {
-          var dur = this.duration();
-
-          $scope.$apply(function() {
-            // Set the progressbar animation.
-            startProgressBar(dur);
-          });
-        });
-
-        // Wait 0.9 seconds to allow fade in to be finished.
         $timeout(function() {
+          // Allow slide.currentVideo to be set.
+          var video = slide.videojs;
+
+          // When the video is done, load next slide.
+          video.one('ended', function() {
+            $scope.$apply(function() {
+              nextSlide();
+            });
+          });
+
+          video.one('error', function() {
+            $scope.$apply(function() {
+              nextSlide();
+
+              // Load the video again.
+              video.load();
+            });
+          });
+
+          video.one('play', function() {
+            var dur = this.duration();
+
+            $scope.$apply(function() {
+              // Set the progressbar animation.
+              startProgressBar(dur);
+            });
+          });
+
           video.play();
         }, fadeTime);
       }
