@@ -71,7 +71,9 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
         });
 
         scope.$on('$destroy', function() {
-          scope.videojs.dispose();
+          if (scope.videojs) {
+            scope.videojs.dispose();
+          }
         });
       },
       template: '<div data-ng-include="" src="ikSlide.template_path"></div>'
