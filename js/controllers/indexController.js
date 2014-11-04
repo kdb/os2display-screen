@@ -165,13 +165,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
               "autoplay": false,
               "preload": "auto"
             });
-
-            slide.videojs.load();
           } else {
             slide.videojs.off('ended');
             slide.videojs.off('error');
             slide.videojs.off('play');
           }
+
+          slide.videojs.load();
 
           // When the video is done, load next slide.
           slide.videojs.one('ended', function() {
