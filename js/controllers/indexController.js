@@ -240,7 +240,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $scope.$apply(function () {
           $scope.step = 'show-content';
           $scope.slides[0] = data.slides;
-          $scope.slides[1] = data.slides;
 
           // Reset progress box
           resetProgressBox();
