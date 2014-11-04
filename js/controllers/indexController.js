@@ -184,7 +184,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
-          video.load();
           video.play();
         }, fadeTime);
       }

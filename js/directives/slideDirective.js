@@ -22,15 +22,21 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
       },
       link: function(scope, element, attrs) {
         scope.initializeVideo = function initializeVideo() {
-          scope.ikSlide.videojs =videojs('videoPlayer' + scope.ikSlide.uniqueId, {
+          scope.ikSlide.videojs = videojs('videoPlayer' + scope.ikSlide.uniqueId, {
             "controls": false,
             "autoplay": false,
             "preload": "auto"
           });
+
+          scope.ikSlide.videojs.load();
         };
 
         attrs.$observe('ikArrayId', function(val) {
           scope.ikSlide.uniqueId = scope.ikArrayId + '-' + scope.ikIndex;
+
+          if (scope.ikSlide.media_type === 'video' && !scope.ikSlide.videojs) {
+            scope.initializeVideo();
+          }
         });
 
         // Observe for changes to the ik-id attribute. Setup slide when ik-id is set.
@@ -62,12 +68,6 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
           };
 
           cssInjector.add(scope.ikSlide.css_path);
-
-          $timeout(function() {
-            if (scope.ikSlide.media_type === 'video' && !scope.ikSlide.videojs) {
-              scope.initializeVideo();
-            }
-          }, 1000);
         });
 
         scope.$on('$destroy', function() {
