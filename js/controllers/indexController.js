@@ -159,23 +159,34 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         }
 
         $timeout(function() {
-          // Allow slide.currentVideo to be set.
-          var video = slide.videojs;
+          if (!slide.videojs) {
+            slide.videojs = videojs('videoPlayer' + slide.uniqueId, {
+              "controls": false,
+              "autoplay": false,
+              "preload": "auto"
+            });
+
+            slide.videojs.load();
+          } else {
+            slide.videojs.off('ended');
+            slide.videojs.off('error');
+            slide.videojs.off('play');
+          }
 
           // When the video is done, load next slide.
-          video.one('ended', function() {
+          slide.videojs.one('ended', function() {
             $scope.$apply(function() {
               nextSlide();
             });
           });
 
-          video.one('error', function() {
+          slide.videojs.one('error', function() {
             $scope.$apply(function() {
               nextSlide();
             });
           });
 
-          video.one('play', function() {
+          slide.videojs.one('play', function() {
             var dur = this.duration();
 
             $scope.$apply(function() {
@@ -184,7 +195,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
-          video.play();
+          slide.videojs.play();
         }, fadeTime);
       }
       else {

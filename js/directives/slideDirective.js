@@ -21,22 +21,12 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
         ikIndex: '='
       },
       link: function(scope, element, attrs) {
-        scope.initializeVideo = function initializeVideo() {
-          scope.ikSlide.videojs = videojs('videoPlayer' + scope.ikSlide.uniqueId, {
-            "controls": false,
-            "autoplay": false,
-            "preload": "auto"
-          });
-
-          scope.ikSlide.videojs.load();
-        };
-
         attrs.$observe('ikArrayId', function(val) {
-          scope.ikSlide.uniqueId = scope.ikArrayId + '-' + scope.ikIndex;
-
-          if (scope.ikSlide.media_type === 'video' && !scope.ikSlide.videojs) {
-            scope.initializeVideo();
+          if (!val) {
+            return;
           }
+
+          scope.ikSlide.uniqueId = scope.ikArrayId + '-' + scope.ikIndex;
         });
 
         // Observe for changes to the ik-id attribute. Setup slide when ik-id is set.
