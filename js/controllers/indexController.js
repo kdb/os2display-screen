@@ -169,6 +169,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             slide.videojs.off('ended');
             slide.videojs.off('error');
             slide.videojs.off('play');
+            slide.videojs.off('ready');
           }
 
           slide.videojs.load();
@@ -195,7 +196,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
-          slide.videojs.play();
+          slide.videojs.ready(function() {
+            slide.videojs.play();
+          });
         }, fadeTime);
       }
       else {
