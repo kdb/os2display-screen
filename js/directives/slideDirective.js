@@ -25,7 +25,7 @@ ikApp.directive('ikSlide', ['cssInjector', '$timeout',
           scope.ikSlide.videojs =videojs('videoPlayer' + scope.ikSlide.uniqueId, {
             "controls": false,
             "autoplay": false,
-            "preload": "auto"
+            "preload": "none"
           });
         };
 
