@@ -187,13 +187,17 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
-          slide.videojs.one('progress', function() {
-            var dur = slide.videojs.duration();
+          slide.videojs.on('progress', function(event) {
+            if (slide.videojs.duration() > 0) {
+              slide.videojs.off('progress');
 
-            $scope.$apply(function() {
-              // Set the progressbar animation.
-              startProgressBar(dur);
-            });
+              var dur = slide.videojs.duration();
+
+              $scope.$apply(function() {
+                // Set the progressbar animation.
+                startProgressBar(dur);
+              });
+            }
           });
 
           slide.videojs.ready(function() {
