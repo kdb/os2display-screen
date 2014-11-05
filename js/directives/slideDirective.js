@@ -11,7 +11,7 @@
  * @param ik-id: the id of the slide.
  * @param ik-width: the width of the slide.
  */
-ikApp.directive('ikSlide', ['cssInjector'
+ikApp.directive('ikSlide', ['cssInjector',
   function(cssInjector) {
     return {
       restrict: 'E',
