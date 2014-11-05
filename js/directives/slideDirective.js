@@ -11,8 +11,8 @@
  * @param ik-id: the id of the slide.
  * @param ik-width: the width of the slide.
  */
-ikApp.directive('ikSlide', ['cssInjector', '$timeout',
-  function(cssInjector, $timeout) {
+ikApp.directive('ikSlide', ['cssInjector'
+  function(cssInjector) {
     return {
       restrict: 'E',
       scope: {
