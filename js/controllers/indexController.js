@@ -163,7 +163,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             slide.videojs = videojs('videoPlayer' + slide.uniqueId, {
               "controls": false,
               "autoplay": false,
-              "preload": "auto"
+              "preload": "none"
             });
           } else {
             slide.videojs.off('ended');
