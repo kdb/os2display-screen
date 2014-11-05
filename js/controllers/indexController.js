@@ -169,7 +169,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             slide.videojs.off('ended');
             slide.videojs.off('error');
             slide.videojs.off('play');
-            slide.videojs.off('ready');
+            slide.videojs.off('progress');
           }
 
           slide.videojs.load();
@@ -187,8 +187,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
-          slide.videojs.one('play', function() {
-            var dur = this.duration();
+          slide.videojs.one('progress', function() {
+            var dur = slide.videojs.duration();
 
             $scope.$apply(function() {
               // Set the progressbar animation.
