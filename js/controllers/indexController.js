@@ -37,8 +37,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      */
     var slideScheduled = function slideScheduled(slide) {
       var now = new Date().getTime() / 1000;
-      return (!slide.schedule_from && !slide.schedule_to) ||
-              (slide.schedule_from !== null && now >= slide.schedule_from && slide.schedule_to !== null && now < slide.schedule_to);
+      return ((!slide.schedule_from || slide.schedule_from === 0) && !slide.schedule_to) ||
+              ((slide.schedule_from !== null && slide.schedule_from !== 0) && now >= slide.schedule_from && (slide.schedule_to !== null && slide.schedule_to !== 0) && now < slide.schedule_to);
     };
 
     /**
@@ -204,6 +204,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             slide.videojs.off('play');
             slide.videojs.off('progress');
           }
+
           slide.videojs = slide.videojs.load();
 
           // When the video is done, load next slide.
@@ -217,13 +218,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           });
 
-          slide.videojs.on('error', function(event) {
+          slide.videojs.on('error', function() {
             $scope.$apply(function() {
               nextSlide();
             });
           });
 
-          slide.videojs.on('progress', function(event) {
+          slide.videojs.on('progress', function() {
             if (slide.videojs.duration() > 0) {
               slide.videojs.off('progress');
 
