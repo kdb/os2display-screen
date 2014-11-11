@@ -50,6 +50,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       $scope.slides[$scope.arrayIndex].forEach(function(element) {
         if (slideScheduled(element)) {
           $scope.progressBoxElements++;
+          element.isScheduled = true;
         }
       });
     };
@@ -105,7 +106,15 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       }
 
       // Ignore if outside of schedule.
-      if (!slideScheduled($scope.slides[$scope.arrayIndex][$scope.currentIndex])) {
+      var currentSlide = $scope.slides[$scope.arrayIndex][$scope.currentIndex];
+
+      if (!slideScheduled(currentSlide)) {
+        // Adjust number of scheduled slides.
+        if (currentSlide.isScheduled) {
+          currentSlide.isScheduled = false;
+          $scope.progressBoxElements--;
+        }
+
         // Check if there are any slides scheduled.
         var scheduleEmpty = true;
         $scope.slides[$scope.arrayIndex].forEach(function(element) {
@@ -125,6 +134,12 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         }
       }
       else {
+        // Adjust number of scheduled slides.
+        if (!currentSlide.isScheduled) {
+          currentSlide.isScheduled = true;
+          $scope.progressBoxElements++;
+        }
+
         displaySlide();
       }
     };
@@ -190,16 +205,18 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             slide.videojs.off('progress');
           }
 
-          slide.videojs.load();
-
           // When the video is done, load next slide.
           slide.videojs.one('ended', function() {
             $scope.$apply(function() {
+              slide.videojs.off('ended');
+              slide.videojs.off('error');
+              slide.videojs.off('play');
+              slide.videojs.off('progress');
               nextSlide();
             });
           });
 
-          slide.videojs.one('error', function() {
+          slide.videojs.on('error', function(event) {
             $scope.$apply(function() {
               nextSlide();
             });
@@ -221,6 +238,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           slide.videojs.ready(function() {
             slide.videojs.play();
           });
+
+          slide.videojs.load();
         }, fadeTime);
       }
       else {
