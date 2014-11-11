@@ -37,8 +37,25 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      */
     var slideScheduled = function slideScheduled(slide) {
       var now = new Date().getTime() / 1000;
-      return ((!slide.schedule_from || slide.schedule_from === 0) && !slide.schedule_to) ||
-              ((slide.schedule_from !== null && slide.schedule_from !== 0) && now >= slide.schedule_from && (slide.schedule_to !== null && slide.schedule_to !== 0) && now < slide.schedule_to);
+      var from = slide.schedule_from;
+      var to = slide.schedule_to;
+
+      var fromSet = from && from !== 0;
+      var toSet = to && to !== 0;
+
+      if (fromSet && !toSet) {
+        return from < now;
+      }
+
+      if (fromSet && toSet) {
+        return from < to && from < now && to > now;
+      }
+
+      if (!fromSet && toSet) {
+        return to > now;
+      }
+
+      return true;
     };
 
     /**
