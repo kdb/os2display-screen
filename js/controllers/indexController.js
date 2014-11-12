@@ -108,6 +108,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       if ($scope.currentIndex >= $scope.slides[$scope.arrayIndex].length) {
         if ($scope.slidesUpdated) {
           $scope.currentIndex = -1;
+          $scope.slides[$scope.arrayIndex] = [];
           $scope.arrayIndex = otherArrayIndex;
           $scope.slidesUpdated = false;
         }
@@ -222,7 +223,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             slide.videojs.off('progress');
           }
 
-          slide.videojs = slide.videojs.load();
+          slide.videojs.load();
 
           // When the video is done, load next slide.
           slide.videojs.one('ended', function() {
