@@ -217,20 +217,21 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
               "autoplay": false,
               "preload": "none"
             });
-          } else {
+          }
+
+          slide.videojs.off('ended');
+          slide.videojs.off('error');
+          slide.videojs.off('play');
+          slide.videojs.off('progress');
+
+          // When the video is done, load next slide.
+          slide.videojs.on('ended', function() {
             slide.videojs.off('ended');
             slide.videojs.off('error');
             slide.videojs.off('play');
             slide.videojs.off('progress');
-          }
 
-          // When the video is done, load next slide.
-          slide.videojs.one('ended', function() {
             $scope.$apply(function() {
-              slide.videojs.off('ended');
-              slide.videojs.off('error');
-              slide.videojs.off('play');
-              slide.videojs.off('progress');
               nextSlide();
             });
           });
@@ -254,9 +255,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             }
           });
 
+          slide.videojs.load();
+
           slide.videojs.ready(function() {
             slide.videojs.play();
-            slide.videojs.currentTime = 0.01;
           });
         }, fadeTime);
       }
