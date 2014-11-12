@@ -61,8 +61,8 @@ ikApp.directive('ikSlide', ['cssInjector',
         });
 
         scope.$on('$destroy', function() {
-          if (scope.videojs) {
-            scope.videojs.dispose();
+          if (scope.ikSlide.videojs) {
+            scope.ikSlide.videojs.dispose();
           }
         });
       },

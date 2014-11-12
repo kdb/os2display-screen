@@ -108,7 +108,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       if ($scope.currentIndex >= $scope.slides[$scope.arrayIndex].length) {
         if ($scope.slidesUpdated) {
           $scope.currentIndex = -1;
-          $scope.slides[$scope.arrayIndex] = [];
           $scope.arrayIndex = otherArrayIndex;
           $scope.slidesUpdated = false;
         }
@@ -218,25 +217,17 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
               "preload": "none"
             });
           }
-
-          slide.videojs.off('ended');
-          slide.videojs.off('error');
-          slide.videojs.off('play');
-          slide.videojs.off('progress');
+          slide.videojs.off();
 
           // When the video is done, load next slide.
-          slide.videojs.on('ended', function() {
-            slide.videojs.off('ended');
-            slide.videojs.off('error');
-            slide.videojs.off('play');
-            slide.videojs.off('progress');
-
+          slide.videojs.one('ended', function() {
+            slide.videojs.off();
             $scope.$apply(function() {
               nextSlide();
             });
           });
 
-          slide.videojs.on('error', function() {
+          slide.videojs.one('error', function() {
             $scope.$apply(function() {
               nextSlide();
             });
@@ -254,8 +245,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
               });
             }
           });
-
-          slide.videojs.load();
 
           slide.videojs.ready(function() {
             slide.videojs.play();
