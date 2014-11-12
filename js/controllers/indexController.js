@@ -168,7 +168,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     var mediaLoadNotConnectedError = function mediaLoadNotConnectedError() {
       Offline.off('down', mediaLoadNotConnectedError);
       nextSlide();
-    }
+    };
 
     /**
      * Display the current slide.
@@ -207,6 +207,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         }
         Offline.off('down', mediaLoadNotConnectedError);
         Offline.on('down', mediaLoadNotConnectedError);
+
         Offline.check();
 
         $timeout(function() {
@@ -255,9 +256,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             }
           });
 
-          slide.videojs.ready(function() {
             slide.videojs.play();
-          });
         }, fadeTime);
       }
       else {
