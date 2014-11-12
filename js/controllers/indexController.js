@@ -224,8 +224,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             slide.videojs.off('progress');
           }
 
-          slide.videojs.load();
-
           // When the video is done, load next slide.
           slide.videojs.one('ended', function() {
             $scope.$apply(function() {
@@ -256,7 +254,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             }
           });
 
+          slide.videojs.ready(function() {
             slide.videojs.play();
+            slide.videojs.currentTime = 0.01;
+          });
         }, fadeTime);
       }
       else {
