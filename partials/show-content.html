@@ -1,0 +1,14 @@
+<div data-ng-show="arrayIndex === 0" class="slide-block">
+  <div data-ng-repeat="slide in slides[0]" data-ng-show="currentIndex === $index && arrayIndex === 0" class="slide">
+    <ik-slide ik-slide="slide" ik-array-id="0" ik-index="$index"></ik-slide>
+  </div>
+</div>
+<div data-ng-show="arrayIndex === 1" class="slide-block">
+  <div data-ng-repeat="slide in slides[1]" data-ng-show="currentIndex === $index && arrayIndex === 1" class="slide">
+    <ik-slide ik-slide="slide" ik-array-id="1" ik-index="$index"></ik-slide>
+  </div>
+</div>
+<div class="progress" data-ng-hide="slides[arrayIndex].length <= 1">
+  <div class="progress-bar" data-ng-style="progressBarStyle"></div>
+  <div class="progress-box">{{progressBoxElementsIndex}} / {{progressBoxElements}}</div>
+</div>
