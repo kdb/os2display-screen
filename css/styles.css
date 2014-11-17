@@ -18,6 +18,7 @@ body {
 
 .slide.ng-hide {
   opacity:0;
+  display: none;
 }
 
 .slide-block {
@@ -35,6 +36,7 @@ body {
 
 .slide-block.ng-hide {
   opacity: 0;
+  display: none;
 }
 
 .progress-box {
