@@ -21,11 +21,33 @@ ikApp.directive('ikSlide', ['cssInjector',
         ikIndex: '='
       },
       link: function(scope, element, attrs) {
+        // Last time the slide was refreshed.
+        var lastRefresh = 0;
+
+        // Return af new refreshed source, with a minimum of 5 second interval.
+        scope.ikSlide.getRefreshedSource = function() {
+          // Make sure updates only occur with 5 seconds interval.
+          var date = (new Date()).getTime();
+          if (date - lastRefresh > 5000) {
+            lastRefresh = date;
+          }
+
+          // Make sure path parameters are not overridden.
+          if (scope.ikSlide.options.source.indexOf('?') > 0) {
+            return scope.ikSlide.options.source + "&ikrefresh=" + lastRefresh;
+          }
+          else {
+            return scope.ikSlide.options.source + "?ikrefresh=" + lastRefresh;
+          }
+        };
+
+        // Observe for changes to ik-array-id attribute. Set unique id.
         attrs.$observe('ikArrayId', function(val) {
           if (!val) {
             return;
           }
 
+          // Generate unique id for slide.
           scope.ikSlide.uniqueId = scope.ikArrayId + '-' + scope.ikIndex;
         });
 
@@ -48,6 +70,7 @@ ikApp.directive('ikSlide', ['cssInjector',
             };
           }
 
+          // Set currentLogo.
           scope.ikSlide.currentLogo = scope.ikSlide.logo;
 
           // Setup the inline styling
@@ -57,9 +80,11 @@ ikApp.directive('ikSlide', ['cssInjector',
             fontsize: scope.ikSlide.options.fontsize + "px"
           };
 
+          // Inject stylesheet.
           cssInjector.add(scope.ikSlide.css_path);
         });
 
+        // Cleanup videojs when slide is removed.
         scope.$on('$destroy', function() {
           if (scope.ikSlide.videojs) {
             scope.ikSlide.videojs.dispose();
