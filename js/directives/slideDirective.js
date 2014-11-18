@@ -18,18 +18,20 @@ ikApp.directive('ikSlide', ['cssInjector',
       scope: {
         ikSlide: '=',
         ikArrayId: '=',
-        ikIndex: '='
+        ikIndex: '=',
+        ikShow: '='
       },
       link: function(scope, element, attrs) {
         // Last time the slide was refreshed.
         var lastRefresh = 0;
 
-        // Return af new refreshed source, with a minimum of 5 second interval.
+        // Return af new refreshed source, with a 30 seconds interval.
         scope.ikSlide.getRefreshedSource = function() {
-          // Make sure updates only occur with 5 seconds interval.
-          var date = (new Date()).getTime();
-          if (date - lastRefresh > 5000) {
-            lastRefresh = date;
+          if (scope.ikShow) {
+            var date = (new Date()).getTime();
+            if (date - lastRefresh > 30000) {
+              lastRefresh = date;
+            }
           }
 
           // Make sure path parameters are not overridden.
