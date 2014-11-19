@@ -202,6 +202,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         if (Offline.state === 'down') {
           Offline.off('down', mediaLoadNotConnectedError);
           nextSlide();
+          Offline.check();
+
           return;
         }
         Offline.off('down', mediaLoadNotConnectedError);
