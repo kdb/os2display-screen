@@ -202,7 +202,6 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         if (Offline.state === 'down') {
           Offline.off('down', mediaLoadNotConnectedError);
           nextSlide();
-          Offline.check();
 
           return;
         }
@@ -224,6 +223,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           // When the video is done, load next slide.
           slide.videojs.one('ended', function() {
             slide.videojs.off();
+            Offline.off('down', mediaLoadNotConnectedError);
             $scope.$apply(function() {
               nextSlide();
             });
@@ -231,6 +231,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
           slide.videojs.one('error', function() {
             $scope.$apply(function() {
+              Offline.off('down', mediaLoadNotConnectedError);
               nextSlide();
             });
           });
