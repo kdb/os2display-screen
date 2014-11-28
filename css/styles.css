@@ -66,3 +66,7 @@ body {
 .vjs-loading-spinner {
   display:none !important;
 }
+
+.vjs-error-display {
+  display: none !important;
+}
