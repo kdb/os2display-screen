@@ -20,9 +20,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     $scope.arrayIndex = 0;
 
     $scope.running = false;
-    $scope.timeout = null;
     $scope.slidesUpdated = false;
 
+    var timeout = null;
     var fadeTime = 1000;
 
     // Used by progress bar
@@ -118,7 +118,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
       // If slides array is empty, wait 5 seconds, try again.
       if ($scope.slides[$scope.arrayIndex].length <= 0) {
-        $timeout(nextSlide, 5000);
+        $timeout.cancel(timeout);
+        timeout = $timeout(nextSlide, 5000);
         return;
       }
 
@@ -145,6 +146,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         } else {
           // If no slide scheduled, go to end of array, wait 5 second, try again.
           $scope.currentIndex = $scope.slides[$scope.arrayIndex].length;
+          $timeout.cancel(timeout);
           $timeout(function() {
             nextSlide();
           }, 5000);
@@ -165,8 +167,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      * Handler for Offline.down event.
      */
     var mediaLoadNotConnectedError = function mediaLoadNotConnectedError() {
-      Offline.off('down', mediaLoadNotConnectedError);
+      $timeout.cancel(timeout);
+      Offline.off('down');
       nextSlide();
+      Offline.check();
     };
 
     /**
@@ -176,6 +180,9 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      * Include 2 seconds in timeout for fade in/outs.
      */
     var displaySlide = function() {
+      $timeout.cancel(timeout);
+      Offline.off('down');
+
       $scope.progressBoxElementsIndex++;
 
       resetProgressBar();
@@ -200,16 +207,17 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
         // Check to make sure the video can download, else go to next slide.
         if (Offline.state === 'down') {
-          Offline.off('down', mediaLoadNotConnectedError);
           nextSlide();
+          Offline.check();
+
           return;
         }
-        Offline.off('down', mediaLoadNotConnectedError);
+
         Offline.on('down', mediaLoadNotConnectedError);
 
         Offline.check();
 
-        $timeout(function() {
+        timeout = $timeout(function() {
           if (!slide.videojs) {
             slide.videojs = videojs('videoPlayer' + slide.uniqueId, {
               "controls": false,
@@ -218,6 +226,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             });
           }
           slide.videojs.off();
+          slide.videojs.load();
 
           // When the video is done, load next slide.
           slide.videojs.one('ended', function() {
@@ -235,6 +244,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
           slide.videojs.on('progress', function() {
             if (slide.videojs.duration() > 0) {
+              Offline.off('down');
               slide.videojs.off('progress');
 
               var dur = slide.videojs.duration();
@@ -261,7 +271,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
         // Wait for slide duration, then show next slide.
         // + 2 seconds to account for fade in/outs.
-        $scope.timeout = $timeout(function() {
+        timeout = $timeout(function() {
           nextSlide();
         }, (slide.duration) * 1000 + fadeTime * 2);
       }
