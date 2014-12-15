@@ -132,7 +132,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
 
       // Set ready state at the server, if not reconnected.
       if (app_initialized) {
-        socket.emit('ready', { token: token });
+        socket.emit('ready', { });
       }
     });
 
@@ -228,7 +228,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
     // Send the request.
     request.send(JSON.stringify({
       "activationCode": activationCode,
-      "server": config.backend.server
+      "apikey": config.apikey
     }));
   };
 
