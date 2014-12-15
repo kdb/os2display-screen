@@ -203,7 +203,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   factory.activateScreenAndConnect = function activateScreenAndConnect(activationCode) {
     // Build ajax post request.
     var request = new XMLHttpRequest();
-    request.open('POST', config.resource.server + config.resource.uri + '/activate', true);
+    request.open('POST', config.resource.server + config.resource.uri + '/screen/activate', true);
     request.setRequestHeader('Content-Type', 'application/json');
 
     request.onload = function(resp) {
@@ -226,7 +226,10 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
     };
 
     // Send the request.
-    request.send(JSON.stringify({ activationCode: activationCode }));
+    request.send(JSON.stringify({
+      "activationCode": activationCode,
+      "server": config.backend.server
+    }));
   };
 
   return factory;

@@ -16,4 +16,4 @@ window.config = {
   cookie: {
     secure: false
   }
-}
+};
