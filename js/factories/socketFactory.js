@@ -15,9 +15,6 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   // Global variable with token cookie.
   var token_cookie;
 
-  // Defines the application state.
-  var app_initialized = true;
-
   /**
    * Cookie object.
    *
@@ -130,10 +127,8 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       // Connection accepted, so lets store the token.
       token_cookie.set(token);
 
-      // Set ready state at the server, if not reconnected.
-      if (app_initialized) {
-        socket.emit('ready', { });
-      }
+      // Set ready state at the server, with app initialized if this is a reconnection.
+      socket.emit('ready', {});
     });
 
     // Handled deletion of screen event.
@@ -177,8 +172,6 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
     // Channel pushed content.
     socket.on('channelPush', function (data) {
       $rootScope.$emit('showContent', data);
-
-      app_initialized = false;
     });
   };
 
