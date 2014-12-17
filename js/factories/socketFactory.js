@@ -140,6 +140,14 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       location.reload(true);
     });
 
+    /**
+     * @TODO: HANDLE CHANNEL REMOVED EVENT:
+     */
+    socket.on('channelRemoved', function (data) {
+      // Display channel ID of channel to remove.
+      alert('Channel remove event: ' + data.id);
+    });
+
     // Ready event - if the server accepted the ready command.
     socket.on('ready', function (data) {
       if (data.statusCode !== 200) {
@@ -153,13 +161,6 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       else {
         //
         $rootScope.$emit('awaitingContent', {});
-      }
-    });
-
-    // Pause event - if the server accepted the pause command.
-    socket.on('pause', function (data) {
-      if (data.statusCode !== 200) {
-        // @todo: error on pause command.
       }
     });
 
