@@ -60,15 +60,15 @@ ikApp.directive('ikSlide', ['cssInjector',
           }
 
           // Only show first image in array.
-          if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length >= 0) {
-            scope.ikSlide.currentImage = scope.ikSlide.media[0];
+          if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length > 0) {
+            scope.ikSlide.currentImage = scope.ikSlide.media[0].image;
           }
-          else if (scope.ikSlide.media_type === 'video') {
+          else if (scope.ikSlide.media_type === 'video' && scope.ikSlide.media.length > 0) {
             // Set current video variable to path to video files.
             scope.ikSlide.currentVideo = {
-              "mp4": scope.ikSlide.media.mp4,
-              "ogg": scope.ikSlide.media.ogv,
-              "webm": scope.ikSlide.media.webm
+              "mp4": scope.ikSlide.media[0].mp4,
+              "ogg": scope.ikSlide.media[0].ogv,
+              "webm": scope.ikSlide.media[0].webm
             };
           }
 
