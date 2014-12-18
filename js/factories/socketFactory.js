@@ -148,6 +148,15 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       alert('Channel remove event: ' + data.id);
     });
 
+    /**
+     * @TODO: HANDLE ERROR EVENT:
+     */
+    socket.on('error', function (data) {
+      if (window.console) {
+        console.log(error);
+      }
+    });
+
     // Ready event - if the server accepted the ready command.
     socket.on('ready', function (data) {
       if (data.statusCode !== 200) {
