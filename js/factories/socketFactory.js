@@ -15,6 +15,9 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   // Global variable with token cookie.
   var token_cookie;
 
+  // Keeps track of connections.
+  var reconnection = false;
+
   /**
    * Cookie object.
    *
@@ -128,7 +131,12 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       token_cookie.set(token);
 
       // Set ready state at the server, with app initialized if this is a reconnection.
-      socket.emit('ready', {});
+      socket.emit('ready');
+
+      // If first time we connect change reconnection to true.
+      if (!reconnection) {
+        reconnection = true;
+      }
     });
 
     // Handled deletion of screen event.
@@ -168,8 +176,10 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
         }
       }
       else {
-        //
-        $rootScope.$emit('awaitingContent', {});
+        // Only switch to awaiting content on a first time connection.
+        if (!reconnection) {
+          $rootScope.$emit('awaitingContent', {});
+        }
       }
     });
 
