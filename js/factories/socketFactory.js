@@ -15,8 +15,8 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   // Global variable with token cookie.
   var token_cookie;
 
-  // Defines the application state.
-  var app_initialized = true;
+  // Keeps track of connections.
+  var reconnection = false;
 
   /**
    * Cookie object.
@@ -130,9 +130,12 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
       // Connection accepted, so lets store the token.
       token_cookie.set(token);
 
-      // Set ready state at the server, if not reconnected.
-      if (app_initialized) {
-        socket.emit('ready', { token: token });
+      // Set ready state at the server, with app initialized if this is a reconnection.
+      socket.emit('ready');
+
+      // If first time we connect change reconnection to true.
+      if (!reconnection) {
+        reconnection = true;
       }
     });
 
@@ -143,6 +146,23 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
 
       // Reload application.
       location.reload(true);
+    });
+
+    /**
+     * @TODO: HANDLE CHANNEL REMOVED EVENT:
+     */
+    socket.on('channelRemoved', function (data) {
+      // Display channel ID of channel to remove.
+      $rootScope.$emit('removeChannel', data);
+    });
+
+    /**
+     * @TODO: HANDLE ERROR EVENT:
+     */
+    socket.on('error', function (data) {
+      if (window.console) {
+        console.log(error);
+      }
     });
 
     // Ready event - if the server accepted the ready command.
@@ -156,15 +176,10 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
         }
       }
       else {
-        //
-        $rootScope.$emit('awaitingContent', {});
-      }
-    });
-
-    // Pause event - if the server accepted the pause command.
-    socket.on('pause', function (data) {
-      if (data.statusCode !== 200) {
-        // @todo: error on pause command.
+        // Only switch to awaiting content on a first time connection.
+        if (!reconnection) {
+          $rootScope.$emit('awaitingContent', {});
+        }
       }
     });
 
@@ -177,8 +192,6 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
     // Channel pushed content.
     socket.on('channelPush', function (data) {
       $rootScope.$emit('showContent', data);
-
-      app_initialized = false;
     });
   };
 
@@ -203,7 +216,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
   factory.activateScreenAndConnect = function activateScreenAndConnect(activationCode) {
     // Build ajax post request.
     var request = new XMLHttpRequest();
-    request.open('POST', config.resource.server + config.resource.uri + '/activate', true);
+    request.open('POST', config.resource.server + config.resource.uri + '/screen/activate', true);
     request.setRequestHeader('Content-Type', 'application/json');
 
     request.onload = function(resp) {
@@ -226,7 +239,10 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
     };
 
     // Send the request.
-    request.send(JSON.stringify({ activationCode: activationCode }));
+    request.send(JSON.stringify({
+      "activationCode": activationCode,
+      "apikey": config.apikey
+    }));
   };
 
   return factory;
