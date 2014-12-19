@@ -365,6 +365,24 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       }
     });
 
+    // Remove the channel from the next display array.
+    $rootScope.$on('removeChannel', function(event, data) {
+      var otherDisplayIndex = ($scope.displayIndex + 1) % 2;
+
+      var index = $scope.channels[otherDisplayIndex].indexOf(data.id);
+
+      if (index !== -1) {
+        $scope.channels[otherDisplayIndex].splice(index,1);
+      }
+
+      index = $scope.channelKeys[otherDisplayIndex].indexOf(data.id);
+      if (index !== -1) {
+        $scope.channelKeys[otherDisplayIndex].splice(index,1);
+      }
+
+      $scope.slidesUpdated = true;
+    });
+
     // Screen activation have failed.
     $rootScope.$on("activationNotComplete", function() {
       $scope.$apply(function () {
