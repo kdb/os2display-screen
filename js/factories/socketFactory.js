@@ -153,7 +153,7 @@ ikApp.factory('socketFactory', ['$rootScope', function($rootScope) {
      */
     socket.on('channelRemoved', function (data) {
       // Display channel ID of channel to remove.
-      alert('Channel remove event: ' + data.id);
+      $rootScope.$emit('removeChannel', data);
     });
 
     /**

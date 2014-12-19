@@ -12,22 +12,32 @@
 ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socketFactory',
   function ($scope, $rootScope, $timeout, socketFactory) {
     $scope.step = 'init';
-    $scope.slides = [
+
+    // To get smooth transitions between slides, slides consist of two arrays, that are switched between.
+    // The current array consist of the channels that are in the current rotation, and the other array
+    //   contains future slides.
+    $scope.channels = [
       [],
       []
     ];
-    $scope.currentIndex = null;
-    $scope.arrayIndex = 0;
+    $scope.channelKeys = [
+      [],
+      []
+    ];
 
+    $scope.slideIndex = null;
+    $scope.channelIndex = null;
+    $scope.displayIndex = 0;
     $scope.running = false;
-    $scope.slidesUpdated = false;
-
-    var timeout = null;
-    var fadeTime = 1000;
 
     // Used by progress bar
     $scope.progressBoxElements = 0;
     $scope.progressBoxElementsIndex = 0;
+
+    var timeout = null;
+    var fadeTime = 1000;
+    $scope.slidesUpdated = false;
+    var channelKey = '';
 
     /**
      * Returns true if the slide is scheduled to be shown now.
@@ -64,11 +74,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     var resetProgressBox = function resetProgressBox() {
       $scope.progressBoxElements = 0;
       $scope.progressBoxElementsIndex = 0;
-      $scope.slides[$scope.arrayIndex].forEach(function(element) {
-        if (slideScheduled(element)) {
-          $scope.progressBoxElements++;
-          element.isScheduled = true;
-        }
+      $scope.channels[$scope.displayIndex].forEach(function(channel) {
+        channel.forEach(function(element) {
+          if (slideScheduled(element)) {
+            $scope.progressBoxElements++;
+            element.isScheduled = true;
+          }
+        });
       });
     };
 
@@ -101,30 +113,44 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      * Set the next slide, and call displaySlide.
      */
     var nextSlide = function nextSlide() {
-      $scope.currentIndex++;
+      $scope.slideIndex++;
 
-      var otherArrayIndex = ($scope.arrayIndex + 1) % 2;
+      var otherDisplayIndex = ($scope.displayIndex + 1) % 2;
 
-      if ($scope.currentIndex >= $scope.slides[$scope.arrayIndex].length) {
-        if ($scope.slidesUpdated) {
-          $scope.currentIndex = -1;
-          $scope.arrayIndex = otherArrayIndex;
-          $scope.slidesUpdated = false;
+      // If overlapping current channel length
+      if ($scope.slideIndex >= $scope.channels[$scope.displayIndex][$scope.channelIndex].length) {
+        channelKey++;
+        // If more channels remain to be shown, go to next slide
+        if (channelKey < $scope.channelKeys[$scope.displayIndex].length) {
+          $scope.channelIndex = $scope.channelKeys[$scope.displayIndex][channelKey];
         }
-        resetProgressBox();
+        else {
+          $scope.slideIndex = -1;
+          channelKey = 0;
 
-        $scope.currentIndex = 0;
+          if ($scope.slidesUpdated) {
+            $scope.displayIndex = otherDisplayIndex;
+            $scope.slidesUpdated = false;
+          }
+
+          $scope.channelIndex = $scope.channelKeys[$scope.displayIndex][channelKey];
+
+          // Reset progress box
+          resetProgressBox();
+        }
+
+        $scope.slideIndex = 0;
       }
 
       // If slides array is empty, wait 5 seconds, try again.
-      if ($scope.slides[$scope.arrayIndex].length <= 0) {
+      if ($scope.channels[$scope.displayIndex][$scope.channelIndex].length <= 0) {
         $timeout.cancel(timeout);
         timeout = $timeout(nextSlide, 5000);
         return;
       }
 
       // Ignore if outside of schedule.
-      var currentSlide = $scope.slides[$scope.arrayIndex][$scope.currentIndex];
+      var currentSlide = $scope.channels[$scope.displayIndex][$scope.channelIndex][$scope.slideIndex];
 
       if (!slideScheduled(currentSlide)) {
         // Adjust number of scheduled slides.
@@ -135,7 +161,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
         // Check if there are any slides scheduled.
         var scheduleEmpty = true;
-        $scope.slides[$scope.arrayIndex].forEach(function(element) {
+        $scope.channels[$scope.displayIndex][$scope.channelIndex].forEach(function(element) {
           if (slideScheduled(element)) {
             scheduleEmpty = false;
           }
@@ -145,7 +171,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           nextSlide();
         } else {
           // If no slide scheduled, go to end of array, wait 5 second, try again.
-          $scope.currentIndex = $scope.slides[$scope.arrayIndex].length;
+          $scope.slideIndex = $scope.channels[$scope.displayIndex][$scope.channelIndex].length;
           $timeout.cancel(timeout);
           $timeout(function() {
             nextSlide();
@@ -187,7 +213,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
 
       resetProgressBar();
 
-      var slide = $scope.slides[$scope.arrayIndex][$scope.currentIndex];
+      var slide = $scope.channels[$scope.displayIndex][$scope.channelIndex][$scope.slideIndex];
 
       // Handle empty slides array.
       if (slide === undefined) {
@@ -282,10 +308,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      * @param data
      */
     var updateSlideShow = function updateSlideShow(data) {
-      var otherArrayIndex = ($scope.arrayIndex + 1) % 2;
+      var otherDisplayIndex = ($scope.displayIndex + 1) % 2;
 
-      $scope.slides[otherArrayIndex] = data.slides;
+      $scope.channels[otherDisplayIndex][data.id] = data.slides;
       $scope.slidesUpdated = true;
+      if ($scope.channelKeys[otherDisplayIndex].indexOf(data.id) === -1) {
+        $scope.channelKeys[otherDisplayIndex].push(data.id);
+      }
     };
 
     // Connect to the backend via sockets.
@@ -311,15 +340,23 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       else {
         // The show was not running, so update the slides and start the show.
         $scope.$apply(function () {
+          $scope.running = true;
           $scope.step = 'show-content';
-          $scope.slides[0] = data.slides;
+          $scope.channels[0][data.id] = data.slides;
+          $scope.channels[1][data.id] = data.slides;
+          if ($scope.channelKeys[0].indexOf(data.id) === -1) {
+            $scope.channelKeys[0].push(data.id);
+            $scope.channelKeys[1].push(data.id);
+          }
+          channelKey = 0;
+          $scope.channelIndex = $scope.channelKeys[0][channelKey];
 
           // Reset progress box
           resetProgressBox();
 
           // Make sure the slides have been loaded. Then start the show.
           $timeout(function() {
-            $scope.currentIndex = -1;
+            $scope.slideIndex = -1;
 
             $scope.running = true;
             nextSlide();
