@@ -17,8 +17,8 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     // The current array consist of the channels that are in the current rotation, and the other array
     //   contains future slides.
     $scope.channels = [
-      [],
-      []
+      {},
+      {}
     ];
     $scope.channelKeys = [
       [],
@@ -37,7 +37,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     var timeout = null;
     var fadeTime = 1000;
     $scope.slidesUpdated = false;
-    var channelKey = '';
+    var channelKey = -1;
 
     /**
      * Returns true if the slide is scheduled to be shown now.
@@ -74,8 +74,10 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
     var resetProgressBox = function resetProgressBox() {
       $scope.progressBoxElements = 0;
       $scope.progressBoxElementsIndex = 0;
-      $scope.channels[$scope.displayIndex].forEach(function(channel) {
-        channel.forEach(function(element) {
+
+      $scope.channelKeys[$scope.displayIndex].forEach(function(channelKey) {
+        var c = $scope.channels[$scope.displayIndex][channelKey];
+        c.forEach(function(element) {
           if (slideScheduled(element)) {
             $scope.progressBoxElements++;
             element.isScheduled = true;
@@ -120,7 +122,7 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       // If overlapping current channel length
       if ($scope.slideIndex >= $scope.channels[$scope.displayIndex][$scope.channelIndex].length) {
         channelKey++;
-        // If more channels remain to be shown, go to next slide
+        // If more channels remain to be shown, go to next channel.
         if (channelKey < $scope.channelKeys[$scope.displayIndex].length) {
           $scope.channelIndex = $scope.channelKeys[$scope.displayIndex][channelKey];
         }
@@ -129,7 +131,11 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
           channelKey = 0;
 
           if ($scope.slidesUpdated) {
+            $scope.channels[$scope.displayIndex] = JSON.parse(JSON.stringify($scope.channels[otherDisplayIndex]));
+            $scope.channelKeys[$scope.displayIndex] = Object.keys($scope.channels[$scope.displayIndex]);
+
             $scope.displayIndex = otherDisplayIndex;
+
             $scope.slidesUpdated = false;
           }
 
@@ -309,12 +315,11 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
      */
     var updateSlideShow = function updateSlideShow(data) {
       var otherDisplayIndex = ($scope.displayIndex + 1) % 2;
+      var id = "" + data.id;
 
-      $scope.channels[otherDisplayIndex][data.id] = data.slides;
+      $scope.channels[otherDisplayIndex][id] = data.slides;
+      $scope.channelKeys[otherDisplayIndex] = Object.keys($scope.channels[otherDisplayIndex]);
       $scope.slidesUpdated = true;
-      if ($scope.channelKeys[otherDisplayIndex].indexOf(data.id) === -1) {
-        $scope.channelKeys[otherDisplayIndex].push(data.id);
-      }
     };
 
     // Connect to the backend via sockets.
@@ -342,12 +347,13 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
         $scope.$apply(function () {
           $scope.running = true;
           $scope.step = 'show-content';
-          $scope.channels[0][data.id] = data.slides;
-          $scope.channels[1][data.id] = data.slides;
-          if ($scope.channelKeys[0].indexOf(data.id) === -1) {
-            $scope.channelKeys[0].push(data.id);
-            $scope.channelKeys[1].push(data.id);
-          }
+          var id = "" + data.id;
+          $scope.channels[0][id] = data.slides;
+          $scope.channels[1][id] = data.slides;
+
+          $scope.channelKeys[0] = Object.keys($scope.channels[0]);
+          $scope.channelKeys[1] = Object.keys($scope.channels[1]);
+
           channelKey = 0;
           $scope.channelIndex = $scope.channelKeys[0][channelKey];
 
@@ -362,6 +368,18 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
             nextSlide();
           }, 1000);
         });
+      }
+    });
+
+    // Remove the channel from the next display array.
+    $rootScope.$on('removeChannel', function(event, data) {
+      var otherDisplayIndex = ($scope.displayIndex + 1) % 2;
+      var id = "" + data.id;
+
+      if ($scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
+        delete $scope.channels[otherDisplayIndex][id];
+        $scope.channelKeys[otherDisplayIndex] = Object.keys($scope.channels[otherDisplayIndex]);
+        $scope.slidesUpdated = true;
       }
     });
 
