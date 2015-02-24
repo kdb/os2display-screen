@@ -12,7 +12,7 @@
     </div>
   </div>
 </div>
-<div class="progress" data-ng-hide="progressBoxElements <= 1">
+<div class="progress" data-ng-hide="!showProgress || progressBoxElements <= 1">
   <div class="progress-bar" data-ng-style="progressBarStyle"></div>
   <div class="progress-box">{{progressBoxElementsIndex}} / {{progressBoxElements}}</div>
 </div>

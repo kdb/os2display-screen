@@ -16,12 +16,13 @@
    * html parameters:
    *   region: region id.
    */
-  app.directive('region', ['$rootScope', '$timeout',
-    function ($rootScope, $timeout) {
+  app.directive('region', ['$rootScope', '$timeout', 'debug',
+    function ($rootScope, $timeout, debug) {
       return {
         restrict: 'E',
         scope: {
-          region: '='
+          region: '=',
+          showProgress: '='
         },
         templateUrl: 'app/shared/region/region.html',
         link: function (scope) {
@@ -335,30 +336,43 @@
           };
 
           // Content has arrived from the middleware.
-          $rootScope.$on('addChannel', function (event, data) {
-            if (data === null) {
+          $rootScope.$on('addChannel', function (event, channel) {
+            if (channel === null) {
               return;
             }
 
-            if (data.region !== scope.region) {
+            // Check if channel should not be added to region.
+            // If it should not be in region and is already,
+            //   remove it from the region.
+            if (channel.regions.indexOf(scope.region) === -1) {
+              var otherDisplayIndex = (scope.displayIndex + 1) % 2;
+              var id = "" + channel.data.id;
+
+              if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
+                debug.log("Removing channel " + channel.data.id + " from region " + scope.region);
+
+                delete scope.channels[otherDisplayIndex][id];
+                scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
+                scope.slidesUpdated = true;
+              }
+
               return;
             }
 
-            // @TODO: Remove this!
-            console.log("Adding channel " + data.id + " to region " + scope.region);
+            debug.log("Adding channel " + channel.data.id + " to region " + scope.region);
 
             // The show is running simply update the slides.
             if (scope.running) {
-              updateSlideShow(data);
+              updateSlideShow(channel.data);
             }
             else {
               // The show was not running, so update the slides and start the show.
               scope.$apply(function () {
                 scope.running = true;
 
-                var id = "" + data.id;
-                scope.channels[0][id] = data.slides;
-                scope.channels[1][id] = data.slides;
+                var id = "" + channel.data.id;
+                scope.channels[0][id] = channel.data.slides;
+                scope.channels[1][id] = channel.data.slides;
 
                 scope.channelKeys[0] = Object.keys(scope.channels[0]);
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
@@ -381,9 +395,9 @@
           });
 
           // Remove the channel from the next display array.
-          $rootScope.$on('removeChannel', function (event, data) {
+          $rootScope.$on('removeChannel', function (event, channel) {
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
-            var id = "" + data.id;
+            var id = "" + channel.id;
 
             if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
               delete scope.channels[otherDisplayIndex][id];

@@ -13,5 +13,7 @@ window.config = {
   // If cookie is secure it's only send over https.
   "cookie": {
     "secure": false
-  }
+  },
+  // Display debug messages.
+  "debug": false
 };

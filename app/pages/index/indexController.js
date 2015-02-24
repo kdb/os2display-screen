@@ -8,12 +8,14 @@
  *
  * Starts the
  */
-ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket',
-  function ($scope, $rootScope, $timeout, socket) {
+ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket', 'debug',
+  function ($scope, $rootScope, $timeout, socket, debug) {
     "use strict";
 
     $scope.template = 'app/pages/index/init.html';
     $scope.running = false;
+
+    var savedChannelPushes = [];
 
     // Screen activation have failed.
     $rootScope.$on("activationNotComplete", function() {
@@ -29,13 +31,27 @@ ikApp.controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket
       });
     });
 
-    $rootScope.$on('start', function() {
+    $rootScope.$on('start', function(event, screen) {
       if (!$scope.running) {
-        $scope.running = true;
-
         $scope.$apply(function () {
-          $scope.template = 'app/pages/index/screen.html';
+          $scope.template = screen.template.path_live;
         });
+
+        $timeout(function() {
+          $scope.running = true;
+
+          for (var i = 0; i < savedChannelPushes.length; i++) {
+            debug.log("emitting channel saved channel.");
+            $rootScope.$emit('addChannel', savedChannelPushes[i]);
+          }
+        }, 5000);
+      }
+    });
+
+    $rootScope.$on('addChannel', function(event, data) {
+      if (!$scope.running) {
+        debug.log("saving channel till screen is ready.");
+        savedChannelPushes.push(data);
       }
     });
 

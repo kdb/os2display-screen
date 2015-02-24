@@ -9,7 +9,8 @@ var ikApp = angular.module('ikApp', [
     'ngAnimate',
     'angular.css.injector',
 
-    'itkRegion'
+    'itkRegion',
+    'itkDebug'
   ]
 ).config(function($sceDelegateProvider) {
     "use strict";

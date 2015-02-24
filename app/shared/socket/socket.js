@@ -1,8 +1,8 @@
 /**
  * Web-socket factory using socket.io to communicate with the middleware.
  */
-ikApp.factory('socket', ['$rootScope',
-  function ($rootScope) {
+ikApp.factory('socket', ['$rootScope', 'debug',
+  function ($rootScope, debug) {
     "use strict";
 
     var factory = {};
@@ -97,9 +97,8 @@ ikApp.factory('socket', ['$rootScope',
       file.setAttribute('src', config.resource.server + config.resource.uri + '/socket.io/socket.io.js');
       file.onload = function () {
         if (typeof io === "undefined") {
-          if (window.console) {
-            console.error("io not loaded");
-          }
+          debug.error("io not loaded");
+
           document.getElementsByTagName("head")[0].removeChild(file);
           window.setTimeout(loadSocket(callback), 100);
         } else {
@@ -121,9 +120,7 @@ ikApp.factory('socket', ['$rootScope',
 
       // Handle error events.
       socket.on('error', function (reason) {
-        if (window.console) {
-          console.log(reason);
-        }
+        debug.log(reason);
       });
 
       // Handle connected event.
@@ -131,15 +128,13 @@ ikApp.factory('socket', ['$rootScope',
         // Connection accepted, so lets store the token.
         token_cookie.set(token);
 
-        // Set ready state at the server, with app initialized if this is a reconnection.
-        socket.emit('ready');
-
         // If first time we connect change reconnection to true.
         if (!reconnection) {
           reconnection = true;
         }
 
-        $rootScope.$emit('start');
+        // Set ready state at the server, with app initialized if this is a reconnection.
+        socket.emit('ready');
       });
 
       // Handled deletion of screen event.
@@ -163,19 +158,17 @@ ikApp.factory('socket', ['$rootScope',
        * @TODO: HANDLE ERROR EVENT:
        */
       socket.on('error', function (data) {
-        if (window.console) {
-          console.log(error);
-        }
+        debug.log(error);
       });
 
       // Ready event - if the server accepted the ready command.
       socket.on('ready', function (data) {
+        $rootScope.$emit('start', data.screen);
+
         if (data.statusCode !== 200) {
           // Screen not found will reload application on dis-connection event.
           if (data.statusCode !== 404) {
-            if (window.console) {
-              console.log('Code: ' + data.statusCode + ' - Connection error');
-            }
+            debug.log('Code: ' + data.statusCode + ' - Connection error');
           }
         }
         else {
@@ -194,9 +187,6 @@ ikApp.factory('socket', ['$rootScope',
 
       // Channel pushed content.
       socket.on('channelPush', function (data) {
-        // @TODO: Remove this when the middleware passes a region with channel.
-        // @TODO: Handle when regions are not yet loaded.
-        data.region = Math.floor((Math.random() * 5) + 1);
         $rootScope.$emit('addChannel', data);
       });
     };
