@@ -1,3 +1,6 @@
+/**
+ * Sets up the config for the app.
+ */
 window.config = {
   "resource": {
     "server": "//indholdskanalen.vm/",
@@ -14,4 +17,4 @@ window.config = {
     secure: false
   },
   "debug": true
-}
+};

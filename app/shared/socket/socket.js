@@ -1,7 +1,7 @@
 /**
  * Web-socket factory using socket.io to communicate with the middleware.
  */
-ikApp.factory('socket', ['$rootScope', 'debug',
+angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
   function ($rootScope, debug) {
     "use strict";
 

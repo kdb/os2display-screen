@@ -20,8 +20,10 @@
  *   region (integer): Which region does the slide belong to?
  *   ---- used for creation unique slide-id ----
  */
-ikApp.directive('slide', ['cssInjector',
+angular.module('ikApp').directive('slide', ['cssInjector',
   function(cssInjector) {
+    "use strict";
+
     return {
       restrict: 'E',
       scope: {

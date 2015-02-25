@@ -1,3 +1,6 @@
+/**
+ * Sets up the config for the app.
+ */
 window.config = {
   // Used to activate screen (rest API) and load resources.
   "resource": {

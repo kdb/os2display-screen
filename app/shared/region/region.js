@@ -7,6 +7,8 @@
  * Setup the module.
  */
 (function() {
+  "use strict";
+
   var app;
   app = angular.module("itkRegion", []);
 
@@ -14,7 +16,8 @@
    * region directive.
    *
    * html parameters:
-   *   region: region id.
+   *   region (integer): region id.
+   *   show-progress (boolean): should the progress bar/box be displayed?
    */
   app.directive('region', ['$rootScope', '$timeout', 'debug',
     function ($rootScope, $timeout, debug) {
