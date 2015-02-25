@@ -8,8 +8,8 @@
  *
  * Sets up the socket connection and displays the activation page if relevant.
  */
-angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket', 'debug',
-  function ($scope, $rootScope, $timeout, socket, debug) {
+angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket', 'debug', 'cssInjector',
+  function ($scope, $rootScope, $timeout, socket, debug, cssInjector) {
     "use strict";
 
     // The template to render in the index.html's ng-include.
@@ -46,12 +46,18 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
     $rootScope.$on('start', function(event, screen) {
       if (!$scope.running) {
         $scope.$apply(function () {
+          // Inject the screen stylesheet.
+          cssInjector.add(screen.template.path_css);
+
+          // Set the screen template.
           $scope.template = screen.template.path_live;
         });
 
+        // Wait 5 seconds for the screen template to load.
         $timeout(function() {
           $scope.running = true;
 
+          // Push all stored channels.
           for (var i = 0; i < savedChannelPushes.length; i++) {
             debug.info("emitting channel saved channel.");
             $rootScope.$emit('addChannel', savedChannelPushes[i]);
