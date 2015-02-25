@@ -1,14 +1,14 @@
 <div data-ng-show="displayIndex === 0" class="slide-block">
   <div data-ng-repeat="channelKey in channelKeys[0]">
     <div data-ng-repeat="slide in channels[0][channelKey]" data-ng-show="channelIndex === channelKey && slideIndex === $index && displayIndex === 0" class="slide">
-      <ik-slide ik-slide="slide" ik-array-id="0" ik-channel-id="channelKey" ik-index="$index" ik-show="channelIndex === channelKey && slideIndex === $index && displayIndex === 0"></ik-slide>
+      <slide ik-slide="slide" region="region" array-id="0" channel-id="channelKey" index="$index" show="channelIndex === channelKey && slideIndex === $index && displayIndex === 0"></slide>
     </div>
   </div>
 </div>
 <div data-ng-show="displayIndex === 1" class="slide-block">
   <div data-ng-repeat="channelKey in channelKeys[1]">
     <div data-ng-repeat="slide in channels[1][channelKey]" data-ng-show="channelIndex === channelKey && slideIndex === $index && displayIndex === 1" class="slide">
-      <ik-slide ik-slide="slide" ik-array-id="1" ik-channel-id="channelKey" ik-index="$index" ik-show="channelIndex === channelKey && slideIndex === $index && displayIndex === 1"></ik-slide>
+      <slide ik-slide="slide" region="region" array-id="1" channel-id="channelKey" index="$index" show="channelIndex === channelKey && slideIndex === $index && displayIndex === 1"></slide>
     </div>
   </div>
 </div>

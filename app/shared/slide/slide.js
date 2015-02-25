@@ -8,18 +8,29 @@
 /**
  * Directive to insert html for a slide.
  *
- * @param ik-id: the id of the slide.
- * @param ik-width: the width of the slide.
+ * html parameters
+ *   ik-slide (object): The slide to display (This is the variable name used in the
+ *     templates, so to change this name would require that names throughout
+ *     the backend and templates folder should also be changed).
+ *   show (boolean): Should the slide be visible?
+ *   ---- used for creation unique slide-id ----
+ *   array-id (integer): The which displayIndex does this slide belong to?
+ *   channel-id (integer): What channel does the slide belong to?
+ *   index (integer): Which index in the channel does that slide have?
+ *   region (integer): Which region does the slide belong to?
+ *   ---- used for creation unique slide-id ----
  */
-ikApp.directive('ikSlide', ['cssInjector',
+ikApp.directive('slide', ['cssInjector',
   function(cssInjector) {
     return {
       restrict: 'E',
       scope: {
         ikSlide: '=',
-        ikArrayId: '=',
-        ikIndex: '=',
-        ikShow: '='
+        show: '=',
+        arrayId: '=',
+        channelId: '=',
+        index: '=',
+        region: '='
       },
       link: function(scope, element, attrs) {
         // Last time the slide was refreshed.
@@ -27,7 +38,7 @@ ikApp.directive('ikSlide', ['cssInjector',
 
         // Return af new refreshed source, with a 30 seconds interval.
         scope.ikSlide.getRefreshedSource = function() {
-          if (scope.ikShow) {
+          if (scope.show) {
             var date = (new Date()).getTime();
             if (date - lastRefresh > 30000) {
               lastRefresh = date;
@@ -44,16 +55,16 @@ ikApp.directive('ikSlide', ['cssInjector',
         };
 
         // Observe for changes to ik-array-id attribute. Set unique id.
-        attrs.$observe('ikArrayId', function(val) {
+        attrs.$observe('arrayId', function(val) {
           if (!val) {
             return;
           }
 
-          // Generate unique id for slide.
-          scope.ikSlide.uniqueId = scope.ikArrayId + '-' + scope.ikIndex;
+          // Generate unique id for ikSlide.
+          scope.ikSlide.uniqueId = scope.region + '-' + scope.arrayId + '-' + scope.channelId + '-' + scope.index;
         });
 
-        // Observe for changes to the ik-id attribute. Setup slide when ik-id is set.
+        // Observe for changes to the ikSlide attribute. Setup ikSlide when set.
         attrs.$observe('ikSlide', function(val) {
           if (!val) {
             return;
@@ -86,7 +97,7 @@ ikApp.directive('ikSlide', ['cssInjector',
           cssInjector.add(scope.ikSlide.css_path);
         });
 
-        // Cleanup videojs when slide is removed.
+        // Cleanup videojs when ikSlide is removed.
         scope.$on('$destroy', function() {
           if (scope.ikSlide.videojs) {
             scope.ikSlide.videojs.dispose();
