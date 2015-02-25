@@ -349,7 +349,7 @@
               var id = "" + channel.data.id;
 
               if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
-                debug.log("Removing channel " + channel.data.id + " from region " + scope.region);
+                debug.info("Removing channel " + channel.data.id + " from region " + scope.region);
 
                 delete scope.channels[otherDisplayIndex][id];
                 scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
@@ -359,7 +359,7 @@
               return;
             }
 
-            debug.log("Adding channel " + channel.data.id + " to region " + scope.region);
+            debug.info("Adding channel " + channel.data.id + " to region " + scope.region);
 
             // The show is running simply update the slides.
             if (scope.running) {

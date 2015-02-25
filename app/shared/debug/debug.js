@@ -40,6 +40,17 @@
       }
     };
 
+    /**
+     * Outputs the debug info message.
+     * @param message
+     */
+    factory.info = function (message) {
+      if (window.config.debug && window.console) {
+        var d = new Date();
+        console.info(d + ':  ' + message);
+      }
+    };
+
     return factory;
   });
 }).call(this);
