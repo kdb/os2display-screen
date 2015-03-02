@@ -5,15 +5,15 @@
  *   A angularJS service to load dynamically CSS files. The original name of this
  *   project was angularDynamicStylesheets.
  */
-var ikApp = angular.module('ikApp', [
+angular.module('ikApp', [
     'ngAnimate',
     'angular.css.injector',
 
     'itkRegion',
     'itkDebug'
   ]
-).config(function($sceDelegateProvider) {
-    "use strict";
+).config(function ($sceDelegateProvider) {
+    'use strict';
 
     // The administration interface and the client code do not run on the same
     // domain/sub-domain hence we need to whitelist the domains to load slide

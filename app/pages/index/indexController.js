@@ -10,7 +10,7 @@
  */
 angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket', 'debug', 'cssInjector',
   function ($scope, $rootScope, $timeout, socket, debug, cssInjector) {
-    "use strict";
+    'use strict';
 
     // The template to render in the index.html's ng-include.
     $scope.template = 'app/pages/index/init.html';
@@ -23,7 +23,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
     /**
      * Register to the activationNotComplete event.
      */
-    $rootScope.$on("activationNotComplete", function() {
+    $rootScope.$on('activationNotComplete', function() {
       $scope.$apply(function () {
         $scope.template = 'app/pages/notActivated/not-activated.html';
       });
@@ -59,7 +59,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
 
           // Push all stored channels.
           for (var i = 0; i < savedChannelPushes.length; i++) {
-            debug.info("emitting channel saved channel.");
+            debug.info('emitting channel saved channel.');
             $rootScope.$emit('addChannel', savedChannelPushes[i]);
           }
         }, 5000);
@@ -74,7 +74,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
      */
     $rootScope.$on('addChannel', function(event, data) {
       if (!$scope.running) {
-        debug.info("saving channel till screen is ready.");
+        debug.info('saving channel till screen is ready.');
         savedChannelPushes.push(data);
       }
     });
