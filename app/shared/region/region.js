@@ -165,7 +165,7 @@
             }
 
             // If slides array is empty, wait 5 seconds, try again.
-            if (scope.channels[scope.displayIndex][scope.channelIndex].length <= 0) {
+            if (scope.channels[scope.displayIndex][scope.channelIndex] === undefined || scope.channels[scope.displayIndex][scope.channelIndex].length <= 0) {
               $timeout.cancel(timeout);
               timeout = $timeout(nextSlide, 5000);
               return;
