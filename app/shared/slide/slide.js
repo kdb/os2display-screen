@@ -32,7 +32,8 @@ angular.module('ikApp').directive('slide', ['cssInjector',
         arrayId: '=',
         channelId: '=',
         index: '=',
-        region: '='
+        region: '=',
+        scale: '='
       },
       link: function(scope, element, attrs) {
         // Last time the slide was refreshed.
@@ -92,8 +93,12 @@ angular.module('ikApp').directive('slide', ['cssInjector',
           scope.theStyle = {
             width: "100%",
             height: "100%",
-            fontsize: scope.ikSlide.options.fontsize + "px"
+            fontsize: scope.ikSlide.options.fontsize * (scope.scale ? scope.scale : 1.0)+ "px"
           };
+
+          if (scope.ikSlide.options.responsive_fontsize) {
+            scope.theStyle.responsiveFontsize = scope.ikSlide.options.responsive_fontsize * (scope.scale ? scope.scale : 1.0)+ "vw";
+          }
 
           // Inject stylesheet.
           cssInjector.add(scope.ikSlide.css_path);

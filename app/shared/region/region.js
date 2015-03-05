@@ -25,7 +25,8 @@
         restrict: 'E',
         scope: {
           region: '=',
-          showProgress: '='
+          showProgress: '=',
+          scale: '='
         },
         templateUrl: 'app/shared/region/region.html',
         link: function (scope) {
