@@ -10,7 +10,8 @@ angular.module('ikApp', [
     'angular.css.injector',
 
     'itkRegion',
-    'itkDebug'
+    'itkDebug',
+    'itkDateComponent'
   ]
 ).config(function ($sceDelegateProvider) {
     'use strict';
