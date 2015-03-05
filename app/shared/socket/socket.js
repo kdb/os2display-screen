@@ -3,7 +3,7 @@
  */
 angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
   function ($rootScope, debug) {
-    "use strict";
+    'use strict';
 
     var factory = {};
 

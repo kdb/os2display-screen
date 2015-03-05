@@ -9,7 +9,7 @@
  */
 angular.module('ikApp').filter('activeEvents', function() {
   return function(items) {
-    "use strict";
+    'use strict';
 
     // Return if event array empty.
     if (!angular.isArray(items)){

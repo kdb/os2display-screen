@@ -7,7 +7,7 @@
  * Setup the module.
  */
 (function() {
-  "use strict";
+  'use strict';
 
   var app;
   app = angular.module("itkRegion", []);

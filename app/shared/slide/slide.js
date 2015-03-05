@@ -22,7 +22,7 @@
  */
 angular.module('ikApp').directive('slide', ['cssInjector',
   function(cssInjector) {
-    "use strict";
+    'use strict';
 
     return {
       restrict: 'E',

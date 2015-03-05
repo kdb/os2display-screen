@@ -10,7 +10,7 @@
  */
 angular.module('ikApp').controller('NotActivatedController', ['$scope', 'socket',
   function ($scope, socket) {
-    "use strict";
+    'use strict';
 
     $scope.activationCode = '';
 
