@@ -116,7 +116,11 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
      */
     var connect = function connect(token) {
       // Get connected to the server.
-      socket = io.connect(config.ws.server, {query: 'token=' + token});
+      socket = io.connect(config.ws.server, {
+        'query': 'token=' + token,
+        'force new connection': true,
+        'max reconnection attempts': Infinity
+      });
 
       // Handle error events.
       socket.on('error', function (reason) {
