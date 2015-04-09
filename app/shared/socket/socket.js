@@ -125,11 +125,6 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
         'reconnectionAttempts': Infinity
       });
 
-      // Handle error events.
-      socket.on('error', function (reason) {
-        debug.log(reason);
-      });
-
       // Handle connected event.
       socket.on('connect', function () {
         // Connection accepted, so lets store the token.
@@ -167,11 +162,19 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
        * @TODO: HANDLE ERROR EVENT:
        */
       socket.on('error', function (error) {
-        debug.log(error);
+        debug.error(error);
       });
 
       socket.on('disconnect', function(){
-        debug.log('disconnect');
+        debug.info('disconnect');
+      });
+
+      socket.on('reconnect', function(){
+        debug.info('reconnect');
+      });
+
+      socket.on('reconnect_attempt', function(){
+        debug.info('reconnect_attempt');
       });
 
       // Ready event - if the server accepted the ready command.

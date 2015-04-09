@@ -28,10 +28,10 @@
       if (window.config.debug && window.console) {
         var d = new Date();
         console.log(d + ':  ' + message);
+      }
 
-        if (typeof Raven !== 'undefined') {
-          Raven.captureMessage(message, { "type": "log" });
-        }
+      if (typeof Raven !== 'undefined') {
+        Raven.captureMessage(message, { tags: { type: "log" }});
       }
     };
 
@@ -43,10 +43,10 @@
       if (window.config.debug && window.console) {
         var d = new Date();
         console.error(d + ':  ' + message);
+      }
 
-        if (typeof Raven !== 'undefined') {
-          Raven.captureMessage(message, { "type": "error" });
-        }
+      if (typeof Raven !== 'undefined') {
+        Raven.captureMessage(message, { tags: { type: "error" }});
       }
     };
 
@@ -58,10 +58,10 @@
       if (window.config.debug && window.console) {
         var d = new Date();
         console.info(d + ':  ' + message);
+      }
 
-        if (typeof Raven !== 'undefined') {
-          Raven.captureMessage(message, { "type": "info" });
-        }
+      if (typeof Raven !== 'undefined') {
+        Raven.captureMessage(message, { tags: { type: "info" }});
       }
     };
 
