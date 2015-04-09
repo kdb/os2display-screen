@@ -24,16 +24,15 @@
      * Outputs the debug log message.
      *
      * @param message
-     * @param id
      */
-    factory.log = function (message, id) {
+    factory.log = function (message) {
       if (window.config.debug && window.console) {
         var d = new Date();
         console.log(d + ':  ' + message);
       }
 
       if (typeof Raven !== 'undefined') {
-        Raven.captureMessage(message, { tags: { type: 'log', id: id }});
+        Raven.captureMessage(message, { tags: { type: 'log'}});
       }
     };
 
@@ -41,16 +40,15 @@
      * Outputs the debug error message.
      *
      * @param message
-     * @param id
      */
-    factory.error = function (message, id) {
+    factory.error = function (message) {
       if (window.config.debug && window.console) {
         var d = new Date();
         console.error(d + ':  ' + message);
       }
 
       if (typeof Raven !== 'undefined') {
-        Raven.captureMessage(message, { tags: { type: 'error', id: id }});
+        Raven.captureMessage(message, { tags: { type: 'error'}});
       }
     };
 
@@ -58,16 +56,15 @@
      * Outputs the debug info message.
      *
      * @param message
-     * @param id
      */
-    factory.info = function (message, id) {
+    factory.info = function (message) {
       if (window.config.debug && window.console) {
         var d = new Date();
         console.info(d + ':  ' + message);
       }
 
       if (typeof Raven !== 'undefined') {
-        Raven.captureMessage(message, { tags: { type: 'info', id: id }});
+        Raven.captureMessage(message, { tags: { type: 'info'}});
       }
     };
 
