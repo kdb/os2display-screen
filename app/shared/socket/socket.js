@@ -118,8 +118,11 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
       // Get connected to the server.
       socket = io.connect(config.ws.server, {
         'query': 'token=' + token,
-        'force new connection': true,
-        'max reconnection attempts': Infinity
+        'forceNew': true,
+        'reconnection': true,
+        'reconnectionDelay': 1000,
+        'reconnectionDelayMax' : 5000,
+        'reconnectionAttempts': Infinity
       });
 
       // Handle error events.
@@ -131,6 +134,8 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
       socket.on('connect', function () {
         // Connection accepted, so lets store the token.
         token_cookie.set(token);
+
+        debug.log("Connection to middleware");
 
         // If first time we connect change reconnection to true.
         if (!reconnection) {
@@ -161,8 +166,12 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
       /**
        * @TODO: HANDLE ERROR EVENT:
        */
-      socket.on('error', function (data) {
+      socket.on('error', function (error) {
         debug.log(error);
+      });
+
+      socket.on('disconnect', function(){
+        debug.log('disconnect');
       });
 
       // Ready event - if the server accepted the ready command.
