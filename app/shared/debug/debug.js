@@ -32,7 +32,7 @@
         console.log(d + ':  ' + message);
       }
 
-      if (typeof Raven !== 'undefined' && Raven.isSetup()) {
+      if (typeof Raven !== 'undefined') {
         Raven.captureMessage(message, { tags: { type: 'log', id: id }});
       }
     };
@@ -49,14 +49,14 @@
         console.error(d + ':  ' + message);
       }
 
-      if (typeof Raven !== 'undefined' && Raven.isSetup()) {
+      if (typeof Raven !== 'undefined') {
         Raven.captureMessage(message, { tags: { type: 'error', id: id }});
       }
     };
 
     /**
      * Outputs the debug info message.
-     * 
+     *
      * @param message
      * @param id
      */
@@ -66,7 +66,7 @@
         console.info(d + ':  ' + message);
       }
 
-      if (typeof Raven !== 'undefined' && Raven.isSetup()) {
+      if (typeof Raven !== 'undefined') {
         Raven.captureMessage(message, { tags: { type: 'info', id: id }});
       }
     };
