@@ -269,7 +269,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
       request.onerror = function (exception) {
         // There was a connection error of some sort
         alert('Activation request failed.');
-        debug.info('Activation request failed.'):
+        debug.info('Activation request failed.');
       };
 
       // Send the request.
