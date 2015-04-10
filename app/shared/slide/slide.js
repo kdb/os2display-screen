@@ -34,6 +34,8 @@ angular.module('ikApp').directive('slide', ['cssInjector',
         scale: '='
       },
       link: function(scope, element, attrs) {
+        scope.ikSlide.uniqueId = null;
+
         // Last time the slide was refreshed.
         var lastRefresh = 0;
 
@@ -56,7 +58,7 @@ angular.module('ikApp').directive('slide', ['cssInjector',
         };
 
         // Observe for changes to ik-array-id attribute. Set unique id.
-        attrs.$observe('arrayId', function(val) {
+        attrs.$observe('regionId', function(val) {
           if (!val) {
             return;
           }

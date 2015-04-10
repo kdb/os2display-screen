@@ -148,7 +148,7 @@
                 channelKey = 0;
 
                 if (scope.slidesUpdated) {
-                  scope.channels[scope.displayIndex] = JSON.parse(JSON.stringify(scope.channels[otherDisplayIndex]));
+                  scope.channels[scope.displayIndex] = angular.copy(scope.channels[otherDisplayIndex]);
                   scope.channelKeys[scope.displayIndex] = Object.keys(scope.channels[scope.displayIndex]);
 
                   scope.displayIndex = otherDisplayIndex;
@@ -334,7 +334,7 @@
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
             var id = "" + data.id;
 
-            scope.channels[otherDisplayIndex][id] = data.slides;
+            scope.channels[otherDisplayIndex][id] = angular.copy(data.slides);
             scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
             scope.slidesUpdated = true;
           };
@@ -375,8 +375,8 @@
                 scope.running = true;
 
                 var id = "" + channel.data.id;
-                scope.channels[0][id] = channel.data.slides;
-                scope.channels[1][id] = channel.data.slides;
+                scope.channels[0][id] = angular.copy(channel.data.slides);
+                scope.channels[1][id] = angular.copy(channel.data.slides);
 
                 scope.channelKeys[0] = Object.keys(scope.channels[0]);
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
