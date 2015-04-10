@@ -24,7 +24,7 @@
       return {
         restrict: 'E',
         scope: {
-          region: '=',
+          regionId: '=',
           showProgress: '=',
           scale: '='
         },
