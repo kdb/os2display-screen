@@ -348,12 +348,12 @@
             // Check if channel should not be added to region.
             // If it should not be in region and is already,
             //   remove it from the region.
-            if (channel.regions.indexOf(scope.region) === -1) {
+            if (channel.regions.indexOf(scope.regionId) === -1) {
               var otherDisplayIndex = (scope.displayIndex + 1) % 2;
               var id = "" + channel.data.id;
 
               if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
-                debug.info("Removing channel " + channel.data.id + " from region " + scope.region);
+                debug.info("Removing channel " + channel.data.id + " from region " + scope.regionId);
 
                 delete scope.channels[otherDisplayIndex][id];
                 scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
@@ -363,7 +363,7 @@
               return;
             }
 
-            debug.info("Adding channel " + channel.data.id + " to region " + scope.region);
+            debug.info("Adding channel " + channel.data.id + " to region " + scope.regionId);
 
             // The show is running simply update the slides.
             if (scope.running) {
