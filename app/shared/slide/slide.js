@@ -30,7 +30,7 @@ angular.module('ikApp').directive('slide', ['cssInjector',
         arrayId: '=',
         channelId: '=',
         index: '=',
-        region: '@',
+        region: '=',
         scale: '='
       },
       link: function(scope, element, attrs) {
