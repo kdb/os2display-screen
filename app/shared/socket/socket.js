@@ -36,7 +36,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
           return (result === null) ? undefined : result[1];
         };
 
-        // Set token
+        // Set token.
         self.set = function set(value, expire) {
           var cookie = name + '=' + escape(value) + ';';
 
@@ -97,7 +97,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
       file.setAttribute('src', config.resource.server + config.resource.uri + '/socket.io/socket.io.js');
       file.onload = function () {
         if (typeof io === "undefined") {
-          debug.error("io not loaded");
+          debug.error("Socket.io not loaded");
 
           document.getElementsByTagName("head")[0].removeChild(file);
           window.setTimeout(loadSocket(callback), 100);
@@ -118,16 +118,13 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
       // Get connected to the server.
       socket = io.connect(config.ws.server, {
         'query': 'token=' + token,
+        'force new connection': true,
+        'max reconnection attempts': Infinity,
         'forceNew': true,
         'reconnection': true,
         'reconnectionDelay': 1000,
         'reconnectionDelayMax' : 5000,
         'reconnectionAttempts': Infinity
-      });
-
-      // Handle error events.
-      socket.on('error', function (reason) {
-        debug.log(reason);
       });
 
       // Handle connected event.
@@ -167,11 +164,31 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
        * @TODO: HANDLE ERROR EVENT:
        */
       socket.on('error', function (error) {
-        debug.log(error);
+        debug.error(error);
       });
 
       socket.on('disconnect', function(){
-        debug.log('disconnect');
+        debug.info('disconnect');
+      });
+
+      socket.on('reconnect', function(){
+        debug.info('reconnect');
+      });
+
+      socket.on('reconnect_attempt', function(){
+        debug.info('reconnect_attempt');
+      });
+
+      socket.on('connect_error', function(){
+        debug.error('connect_error');
+      });
+
+      socket.on('reconnect_error', function(){
+        debug.error('reconnect_error');
+      });
+
+      socket.on('reconnect_failed', function(){
+        debug.error('reconnect_failed');
       });
 
       // Ready event - if the server accepted the ready command.
@@ -233,18 +250,26 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
           // Success.
           resp = JSON.parse(request.responseText);
 
+          if (typeof Raven !== 'undefined') {
+            Raven.setUser({
+              id: activationCode
+            });
+          }
+
           // Try to get connection to the proxy.
           connect(resp.token);
         }
         else {
           // We reached our target server, but it returned an error
           alert('Activation could not be performed.');
+          debug.info('Activation could not be performed.');
         }
       };
 
       request.onerror = function (exception) {
         // There was a connection error of some sort
         alert('Activation request failed.');
+        debug.info('Activation request failed.');
       };
 
       // Send the request.
