@@ -3,8 +3,6 @@
  * Contains the slide directive.
  */
 
-"use strict";
-
 /**
  * Directive to insert html for a slide.
  *
@@ -32,10 +30,12 @@ angular.module('ikApp').directive('slide', ['cssInjector',
         arrayId: '=',
         channelId: '=',
         index: '=',
-        region: '=',
+        regionId: '=',
         scale: '='
       },
       link: function(scope, element, attrs) {
+        scope.ikSlide.uniqueId = null;
+
         // Last time the slide was refreshed.
         var lastRefresh = 0;
 
@@ -58,13 +58,13 @@ angular.module('ikApp').directive('slide', ['cssInjector',
         };
 
         // Observe for changes to ik-array-id attribute. Set unique id.
-        attrs.$observe('arrayId', function(val) {
+        attrs.$observe('regionId', function(val) {
           if (!val) {
             return;
           }
 
           // Generate unique id for ikSlide.
-          scope.ikSlide.uniqueId = scope.region + '-' + scope.arrayId + '-' + scope.channelId + '-' + scope.index;
+          scope.ikSlide.uniqueId = '' + scope.regionId + '-' + scope.arrayId + '-' + scope.channelId + '-' + scope.index;
         });
 
         // Observe for changes to the ikSlide attribute. Setup ikSlide when set.

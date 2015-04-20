@@ -24,7 +24,7 @@
       return {
         restrict: 'E',
         scope: {
-          region: '=',
+          regionId: '=',
           showProgress: '=',
           scale: '='
         },
@@ -148,7 +148,7 @@
                 channelKey = 0;
 
                 if (scope.slidesUpdated) {
-                  scope.channels[scope.displayIndex] = JSON.parse(JSON.stringify(scope.channels[otherDisplayIndex]));
+                  scope.channels[scope.displayIndex] = angular.copy(scope.channels[otherDisplayIndex]);
                   scope.channelKeys[scope.displayIndex] = Object.keys(scope.channels[scope.displayIndex]);
 
                   scope.displayIndex = otherDisplayIndex;
@@ -334,7 +334,7 @@
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
             var id = "" + data.id;
 
-            scope.channels[otherDisplayIndex][id] = data.slides;
+            scope.channels[otherDisplayIndex][id] = angular.copy(data.slides);
             scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
             scope.slidesUpdated = true;
           };
@@ -348,12 +348,12 @@
             // Check if channel should not be added to region.
             // If it should not be in region and is already,
             //   remove it from the region.
-            if (channel.regions.indexOf(scope.region) === -1) {
+            if (channel.regions.indexOf(scope.regionId) === -1) {
               var otherDisplayIndex = (scope.displayIndex + 1) % 2;
               var id = "" + channel.data.id;
 
               if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
-                debug.info("Removing channel " + channel.data.id + " from region " + scope.region);
+                debug.info("Removing channel " + channel.data.id + " from region " + scope.regionId);
 
                 delete scope.channels[otherDisplayIndex][id];
                 scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
@@ -363,7 +363,7 @@
               return;
             }
 
-            debug.info("Adding channel " + channel.data.id + " to region " + scope.region);
+            debug.info("Adding channel " + channel.data.id + " to region " + scope.regionId);
 
             // The show is running simply update the slides.
             if (scope.running) {
@@ -375,8 +375,8 @@
                 scope.running = true;
 
                 var id = "" + channel.data.id;
-                scope.channels[0][id] = channel.data.slides;
-                scope.channels[1][id] = channel.data.slides;
+                scope.channels[0][id] = angular.copy(channel.data.slides);
+                scope.channels[1][id] = angular.copy(channel.data.slides);
 
                 scope.channelKeys[0] = Object.keys(scope.channels[0]);
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
