@@ -250,12 +250,6 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
           // Success.
           resp = JSON.parse(request.responseText);
 
-          if (typeof Raven !== 'undefined') {
-            Raven.setUser({
-              id: activationCode
-            });
-          }
-
           // Try to get connection to the proxy.
           connect(resp.token);
         }

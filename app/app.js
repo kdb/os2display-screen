@@ -28,20 +28,9 @@ angular.module('ikApp', [
   }).config(function($provide) {
     'use strict';
 
-    // Install raven.
-    Raven.config('https://3fe788f3238540d1992baa3e37fcd0ff@app.getsentry.com/41232', {
-      // pass along the version of your application
-      release: '1.0.0'
-
-      // we highly recommend restricting exceptions to a domain in order to filter out clutter
-      //whitelistUrls: ['example.com/scripts/']
-    }).install();
-
-
     $provide.decorator("$exceptionHandler", ['$delegate', function ($delegate) {
       return function (exception, cause) {
         $delegate(exception, cause);
-        Raven.captureException(exception);
       };
     }]);
   });
