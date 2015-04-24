@@ -1,8 +1,8 @@
 /**
  * Web-socket factory using socket.io to communicate with the middleware.
  */
-angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
-  function ($rootScope, debug) {
+angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
+  function ($rootScope, itkLogFactory) {
     'use strict';
 
     var factory = {};
@@ -97,7 +97,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
       file.setAttribute('src', config.resource.server + config.resource.uri + '/socket.io/socket.io.js');
       file.onload = function () {
         if (typeof io === "undefined") {
-          debug.error("Socket.io not loaded");
+          itkLogFactory.error("Socket.io not loaded");
 
           document.getElementsByTagName("head")[0].removeChild(file);
           window.setTimeout(loadSocket(callback), 100);
@@ -132,7 +132,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
         // Connection accepted, so lets store the token.
         token_cookie.set(token);
 
-        debug.log("Connection to middleware");
+        itkLogFactory.log("Connection to middleware");
 
         // If first time we connect change reconnection to true.
         if (!reconnection) {
@@ -164,31 +164,31 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
        * @TODO: HANDLE ERROR EVENT:
        */
       socket.on('error', function (error) {
-        debug.error(error);
+        itkLogFactory.error(error);
       });
 
       socket.on('disconnect', function(){
-        debug.info('disconnect');
+        itkLogFactory.info('disconnect');
       });
 
       socket.on('reconnect', function(){
-        debug.info('reconnect');
+        itkLogFactory.info('reconnect');
       });
 
       socket.on('reconnect_attempt', function(){
-        debug.info('reconnect_attempt');
+        itkLogFactory.info('reconnect_attempt');
       });
 
       socket.on('connect_error', function(){
-        debug.error('connect_error');
+        itkLogFactory.error('connect_error');
       });
 
       socket.on('reconnect_error', function(){
-        debug.error('reconnect_error');
+        itkLogFactory.error('reconnect_error');
       });
 
       socket.on('reconnect_failed', function(){
-        debug.error('reconnect_failed');
+        itkLogFactory.error('reconnect_failed');
       });
 
       // Ready event - if the server accepted the ready command.
@@ -198,7 +198,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
         if (data.statusCode !== 200) {
           // Screen not found will reload application on dis-connection event.
           if (data.statusCode !== 404) {
-            debug.log('Code: ' + data.statusCode + ' - Connection error');
+            itkLogFactory.log('Code: ' + data.statusCode + ' - Connection error');
           }
         }
         else {
@@ -256,14 +256,14 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'debug',
         else {
           // We reached our target server, but it returned an error
           alert('Activation could not be performed.');
-          debug.info('Activation could not be performed.');
+          itkLogFactory.info('Activation could not be performed.');
         }
       };
 
       request.onerror = function (exception) {
         // There was a connection error of some sort
         alert('Activation request failed.');
-        debug.info('Activation request failed.');
+        itkLogFactory.info('Activation request failed.');
       };
 
       // Send the request.

@@ -19,8 +19,8 @@
    *   region (integer): region id.
    *   show-progress (boolean): should the progress bar/box be displayed?
    */
-  app.directive('region', ['$rootScope', '$timeout', 'debug',
-    function ($rootScope, $timeout, debug) {
+  app.directive('region', ['$rootScope', '$timeout', 'itkLogFactory',
+    function ($rootScope, $timeout, itkLogFactory) {
       return {
         restrict: 'E',
         scope: {
@@ -353,7 +353,7 @@
               var id = "" + channel.data.id;
 
               if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
-                debug.info("Removing channel " + channel.data.id + " from region " + scope.regionId);
+                itkLogFactory.info("Removing channel " + channel.data.id + " from region " + scope.regionId);
 
                 delete scope.channels[otherDisplayIndex][id];
                 scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
@@ -363,7 +363,7 @@
               return;
             }
 
-            debug.info("Adding channel " + channel.data.id + " to region " + scope.regionId);
+            itkLogFactory.info("Adding channel " + channel.data.id + " to region " + scope.regionId);
 
             // The show is running simply update the slides.
             if (scope.running) {

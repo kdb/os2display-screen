@@ -9,8 +9,9 @@ angular.module('ikApp', [
     'ngAnimate',
     'angular.css.injector',
 
+    'itkLog',
+
     'itkRegion',
-    'itkDebug',
     'itkDateComponent'
   ]
 ).config(function ($sceDelegateProvider) {

@@ -8,8 +8,8 @@
  *
  * Sets up the socket connection and displays the activation page if relevant.
  */
-angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket', 'debug', 'cssInjector',
-  function ($scope, $rootScope, $timeout, socket, debug, cssInjector) {
+angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '$timeout', 'socket', 'itkLogFactory', 'cssInjector',
+  function ($scope, $rootScope, $timeout, socket, itkLogFactory, cssInjector) {
     'use strict';
 
     // The template to render in the index.html's ng-include.
@@ -59,7 +59,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
 
           // Push all stored channels.
           for (var i = 0; i < savedChannelPushes.length; i++) {
-            debug.info('emitting channel saved channel.');
+            itkLogFactory.info('emitting channel saved channel.');
             $rootScope.$emit('addChannel', savedChannelPushes[i]);
           }
         }, 5000);
@@ -74,7 +74,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
      */
     $rootScope.$on('addChannel', function(event, data) {
       if (!$scope.running) {
-        debug.info('saving channel till screen is ready.');
+        itkLogFactory.info('saving channel till screen is ready.');
         savedChannelPushes.push(data);
       }
     });
