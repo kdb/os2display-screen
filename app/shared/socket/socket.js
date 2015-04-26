@@ -198,7 +198,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
         if (data.statusCode !== 200) {
           // Screen not found will reload application on dis-connection event.
           if (data.statusCode !== 404) {
-            itkLogFactory.log('Code: ' + data.statusCode + ' - Connection error');
+            itkLogFactory.error('Code: ' + data.statusCode + ' - Connection error');
           }
         }
         else {
@@ -255,15 +255,13 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
         }
         else {
           // We reached our target server, but it returned an error
-          alert('Activation could not be performed.');
-          itkLogFactory.info('Activation could not be performed.');
+          itkLogFactory.error('Activation could not be performed.', request);
         }
       };
 
       request.onerror = function (exception) {
         // There was a connection error of some sort
-        alert('Activation request failed.');
-        itkLogFactory.info('Activation request failed.');
+        itkLogFactory.error('Activation request failed.', exception);
       };
 
       // Send the request.
