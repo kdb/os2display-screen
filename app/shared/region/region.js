@@ -219,8 +219,10 @@
             itkLogFactory.error("Offline (while playing video) - jumping to next slide.");
             $timeout.cancel(timeout);
             Offline.off('down');
-            nextSlide();
-            Offline.check();
+            $timeout(function () {
+              nextSlide();
+              Offline.check();
+            }, 1000);
           };
 
           /**
@@ -258,8 +260,10 @@
               // Check to make sure the video can download, else go to next slide.
               if (Offline.state === 'down') {
                 itkLogFactory.error("Offline (before playing video) - jumping to next slide.");
-                nextSlide();
-                Offline.check();
+                $timeout(function () {
+                  nextSlide();
+                  Offline.check();
+                }, 1000);
 
                 return;
               }
@@ -289,14 +293,14 @@
                 });
 
                 slide.videojs.one('error', function () {
-                  if (slide.videojs.ended()) {
+                  if (slide.videojs.paused()) {
+                    itkLogFactory.error("Error (while playing video) - jumping to next slide.");
                     $timeout(function () {
                         scope.$apply(function () {
-                          itkLogFactory.error("Error (while playing video) - jumping to next slide.");
                           nextSlide();
                         })
                       },
-                    1000);
+                      1000);
                   }
                 });
 
