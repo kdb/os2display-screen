@@ -292,17 +292,16 @@
                   });
                 });
 
-                slide.videojs.one('error', function () {
-                  var curTime = slide.videojs.currentTime();
-                  itkLogFactory.error("Error (while playing video) - jumping to next slide.");
-                  $timeout(function () {
-                      if (curTime == slide.videojs.currentTime()) {
+                slide.videojs.one('error', function (event) {
+                  if (event.target.error) {
+                    itkLogFactory.error("Error (while playing video).", event.target.error);
+                    $timeout(function () {
                         scope.$apply(function () {
                           nextSlide();
                         });
-                      }
-                    },
-                    1000);
+                      },
+                      1000);
+                  }
                 });
 
                 slide.videojs.on('progress', function () {
