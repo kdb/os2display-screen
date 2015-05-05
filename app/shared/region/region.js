@@ -216,6 +216,7 @@
            * Handler for Offline.down event.
            */
           var mediaLoadNotConnectedError = function mediaLoadNotConnectedError() {
+            itkLogFactory.error("Offline (while playing video) - jumping to next slide.");
             $timeout.cancel(timeout);
             Offline.off('down');
             nextSlide();
@@ -256,6 +257,7 @@
 
               // Check to make sure the video can download, else go to next slide.
               if (Offline.state === 'down') {
+                itkLogFactory.error("Offline (before playing video) - jumping to next slide.");
                 nextSlide();
                 Offline.check();
 
@@ -281,12 +283,14 @@
                 slide.videojs.one('ended', function () {
                   slide.videojs.off();
                   scope.$apply(function () {
+                    itkLogFactory.info("Video ended.");
                     nextSlide();
                   });
                 });
 
                 slide.videojs.one('error', function () {
                   scope.$apply(function () {
+                    itkLogFactory.error("Offline (before playing video) - jumping to next slide.");
                     nextSlide();
                   });
                 });
