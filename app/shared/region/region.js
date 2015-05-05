@@ -6,7 +6,7 @@
 /**
  * Setup the module.
  */
-(function() {
+(function () {
   'use strict';
 
   var app;
@@ -216,10 +216,13 @@
            * Handler for Offline.down event.
            */
           var mediaLoadNotConnectedError = function mediaLoadNotConnectedError() {
+            itkLogFactory.info("Offline (while playing video) - jumping to next slide.");
             $timeout.cancel(timeout);
             Offline.off('down');
-            nextSlide();
-            Offline.check();
+            $timeout(function () {
+              nextSlide();
+              Offline.check();
+            }, 1000);
           };
 
           /**
@@ -256,6 +259,7 @@
 
               // Check to make sure the video can download, else go to next slide.
               if (Offline.state === 'down') {
+                itkLogFactory.info("Offline (before playing video) - jumping to next slide.");
                 nextSlide();
                 Offline.check();
 
@@ -281,14 +285,19 @@
                 slide.videojs.one('ended', function () {
                   slide.videojs.off();
                   scope.$apply(function () {
+                    itkLogFactory.info("Video ended.");
                     nextSlide();
                   });
                 });
 
-                slide.videojs.one('error', function () {
-                  scope.$apply(function () {
-                    nextSlide();
-                  });
+                slide.videojs.one('error', function (event) {
+                  itkLogFactory.error("Error (while playing video).", event);
+                  $timeout(function () {
+                      scope.$apply(function () {
+                        nextSlide();
+                      });
+                    },
+                    1000);
                 });
 
                 slide.videojs.on('progress', function () {
@@ -414,5 +423,3 @@
     }
   ]);
 }).call(this);
-
-
