@@ -6,7 +6,7 @@
 /**
  * Setup the module.
  */
-(function() {
+(function () {
   'use strict';
 
   var app;
@@ -289,10 +289,15 @@
                 });
 
                 slide.videojs.one('error', function () {
-                  scope.$apply(function () {
-                    itkLogFactory.error("Error (while playing video) - jumping to next slide.");
-                    nextSlide();
-                  });
+                  if (slide.videojs.ended()) {
+                    $timeout(function () {
+                        scope.$apply(function () {
+                          itkLogFactory.error("Error (while playing video) - jumping to next slide.");
+                          nextSlide();
+                        })
+                      },
+                    1000);
+                  }
                 });
 
                 slide.videojs.on('progress', function () {
@@ -418,5 +423,3 @@
     }
   ]);
 }).call(this);
-
-
