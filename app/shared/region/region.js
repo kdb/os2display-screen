@@ -290,7 +290,7 @@
 
                 slide.videojs.one('error', function () {
                   scope.$apply(function () {
-                    itkLogFactory.error("Offline (before playing video) - jumping to next slide.");
+                    itkLogFactory.error("Error (while playing video) - jumping to next slide.");
                     nextSlide();
                   });
                 });
