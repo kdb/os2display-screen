@@ -51,6 +51,9 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
 
           // Set the screen template.
           $scope.template = screen.template.path_live;
+          $scope.templateDirectory = screen.template.path;
+
+          $scope.options = screen.options;
         });
 
         // Wait 5 seconds for the screen template to load.

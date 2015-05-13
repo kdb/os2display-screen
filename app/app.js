@@ -12,7 +12,8 @@ angular.module('ikApp', [
     'itkLog',
 
     'itkRegion',
-    'itkDateComponent'
+    'itkDateComponent',
+    'itkDigitalClockComponent'
   ]
 ).config(function ($sceDelegateProvider) {
     'use strict';
