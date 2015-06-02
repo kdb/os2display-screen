@@ -79,6 +79,14 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
       }
     });
 
+    /**
+     * Logout and reload the screen.
+     */
+    $scope.logout = function logout() {
+      // Use the socket to logout.
+      socket.logout();
+    };
+
     // Start the socket connection to the middleware.
     socket.start();
   }

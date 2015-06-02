@@ -235,6 +235,20 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
     };
 
     /**
+     * Logout of the system.
+     */
+    factory.logout = function logout() {
+      // Send socket logout event.
+      $rootScope.$emit('logout');
+
+      // Remove cookie with token.
+      token_cookie.remove();
+
+      // Reload application.
+      location.reload(true);
+    };
+
+    /**
      * Activate the screen and connect.
      * @param activationCode
      *   Activation code for the screen.
