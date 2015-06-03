@@ -25,7 +25,7 @@
     <!-- Components -->
     <script src="app/shared/components/date/dateComponent.js"></script>
     <script src="app/shared/components/digital-clock/digitalClockComponent.js"></script>
-
+    <script src="app/shared/components/keypress/keypress.js"></script>
 
     <!-- Load the app -->
     <script src="app/config.js"></script>
@@ -37,7 +37,7 @@
     <script src="app/shared/region/region.js"></script>
     <script src="app/shared/filters/activeEvents.js"></script>
   </head>
-  <body data-ng-controller="IndexController">
+  <body data-ng-controller="IndexController" data-itk-keypress="logout()" data-key="76" data-modifier="17">
     <div data-ng-include="template"></div>
   </body>
 </html>

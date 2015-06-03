@@ -219,6 +219,11 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
       socket.on('channelPush', function (data) {
         $rootScope.$emit('addChannel', data);
       });
+
+      // Get logout event and send it to the middleware.
+      $rootScope.$on('logout', function () {
+        socket.emit('logout');
+      });
     };
 
     /********************************
@@ -235,37 +240,78 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
     };
 
     /**
+     * Logout of the system.
+     */
+    factory.logout = function logout() {
+      // Send socket logout event.
+      $rootScope.$emit('logout');
+
+      // Remove cookie with token.
+      token_cookie.remove();
+
+      // Reload application.
+      location.reload(true);
+    };
+
+    /**
      * Activate the screen and connect.
      * @param activationCode
      *   Activation code for the screen.
      */
     factory.activateScreenAndConnect = function activateScreenAndConnect(activationCode) {
       // Build ajax post request.
-      var request = new XMLHttpRequest();
-      request.open('POST', config.resource.server + config.resource.uri + '/screen/activate', true);
-      request.setRequestHeader('Content-Type', 'application/json');
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', config.resource.server + config.resource.uri + '/screen/activate', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
 
-      request.onload = function (resp) {
-        if (request.readyState == 4 && request.status == 200) {
+      xhr.onload = function (resp) {
+        if (xhr.readyState == 4 && xhr.status == 200) {
           // Success.
-          resp = JSON.parse(request.responseText);
+          resp = JSON.parse(xhr.responseText);
 
           // Try to get connection to the proxy.
           connect(resp.token);
         }
+        else if (xhr.readyState == 4 && xhr.status == 409) {
+          resp = JSON.parse(xhr.responseText);
+          var dialog = confirm(resp.message);
+          if (dialog == true) {
+            // Create AJAX call to kick screens.
+            var kickXHR = new XMLHttpRequest();
+            kickXHR.open('POST', config.resource.server + config.resource.uri + '/screen/kick', true);
+            kickXHR.setRequestHeader('Content-Type', 'application/json');
+            kickXHR.setRequestHeader('Authorization', 'Bearer ' + resp.token);
+
+            // Screen should be kick now so try to re-activate.
+            kickXHR.onload = function (resp) {
+              activateScreenAndConnect(activationCode);
+            };
+
+            // Something went wrong.
+            kickXHR.onerror = function (exception) {
+              // There was a connection error of some sort
+              itkLogFactory.error('Kick request failed.', exception);
+            };
+
+            // Send the request.
+            kickXHR.send(JSON.stringify({
+              "token": resp.token
+            }));
+          }
+        }
         else {
           // We reached our target server, but it returned an error
-          itkLogFactory.error('Activation could not be performed.', request);
+          itkLogFactory.error(xhr.responseText, xhr);
         }
       };
 
-      request.onerror = function (exception) {
+      xhr.onerror = function (exception) {
         // There was a connection error of some sort
         itkLogFactory.error('Activation request failed.', exception);
       };
 
       // Send the request.
-      request.send(JSON.stringify({
+      xhr.send(JSON.stringify({
         "activationCode": activationCode,
         "apikey": config.apikey
       }));
