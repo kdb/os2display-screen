@@ -219,6 +219,11 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
       socket.on('channelPush', function (data) {
         $rootScope.$emit('addChannel', data);
       });
+
+      // Get logout event and send it to the middleware.
+      $rootScope.$on('logout', function () {
+        socket.emit('logout');
+      });
     };
 
     /********************************
