@@ -5,37 +5,34 @@
 
 /**
  * Setup the module.
- *
- * Requires
- *   moment.js
  */
 (function () {
   'use strict';
 
   var app;
-  app = angular.module("itkDateComponent", []);
+  app = angular.module('itkDigitalClockComponent', []);
 
   /**
    * date component directive.
    *
    * html parameters:
    */
-  app.directive('dateComponent', ['$interval',
+  app.directive('digitalClockComponent', ['$interval',
     function ($interval) {
       return {
         restrict: 'E',
         replace: true,
-        templateUrl: 'app/shared/components/date/date.html',
+        templateUrl: 'app/shared/components/digital-clock/digital-clock.html',
         scope: {
         },
         link: function (scope) {
           scope.thisDate = new Date();
 
+          // Update current date every minute.
           $interval(function() {
             // Update current datetime.
-           // scope.date = moment();
-            scope.thisDate = new Date();
-          }, 10000);
+            scope.thisDate = Date.now();
+          }, 1000);
         }
       };
     }
