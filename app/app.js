@@ -13,6 +13,7 @@ angular.module('ikApp', [
 
     'itkRegion',
     'itkDateComponent',
+    'itkDigitalClockComponent',
     'itkKeypress'
   ]
 ).config(function ($sceDelegateProvider) {
