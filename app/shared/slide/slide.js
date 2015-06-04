@@ -111,7 +111,7 @@ angular.module('ikApp').directive('slide', ['cssInjector',
           }
         });
       },
-      template: '<div data-ng-include="" src="ikSlide.template_path"></div>'
+      template: '<div data-ng-include="ikSlide.template_path"></div>'
     };
   }
 ]);

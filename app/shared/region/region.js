@@ -19,8 +19,8 @@
    *   region (integer): region id.
    *   show-progress (boolean): should the progress bar/box be displayed?
    */
-  app.directive('region', ['$rootScope', '$timeout', 'itkLogFactory',
-    function ($rootScope, $timeout, itkLogFactory) {
+  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLogFactory',
+    function ($rootScope, $timeout, $interval, itkLogFactory) {
       return {
         restrict: 'E',
         scope: {
@@ -266,57 +266,38 @@
                 return;
               }
 
+              // Check if there is an internet connection.
               Offline.on('down', mediaLoadNotConnectedError);
-
               Offline.check();
 
               timeout = $timeout(function () {
-                if (!slide.videojs) {
-                  slide.videojs = videojs('videoPlayer' + slide.uniqueId, {
-                    "controls": false,
-                    "autoplay": false,
-                    "preload": "none"
-                  });
-                }
-                slide.videojs.off();
-                slide.videojs.load();
+                // Get hold of the video element.
+                slide.video = document.getElementById('videoPlayer-' + slide.uniqueId);
 
-                // When the video is done, load next slide.
-                slide.videojs.one('ended', function () {
-                  slide.videojs.off();
-                  scope.$apply(function () {
-                    itkLogFactory.info("Video ended.");
-                    nextSlide();
-                  });
-                });
+                // Play the video.
+                slide.video.play();
 
-                slide.videojs.one('error', function (event) {
-                  itkLogFactory.error("Error (while playing video).", event);
-                  $timeout(function () {
-                      scope.$apply(function () {
-                        nextSlide();
-                      });
-                    },
-                    1000);
-                });
+                // Create interval to get video duration (ready state larger than one is meta-data loaded).
+                var inteval = $interval(function() {
+                  if (slide.video.readyState > 0) {
+                    var duration = Math.round(slide.video.duration);
+                    startProgressBar(duration);
 
-                slide.videojs.on('progress', function () {
-                  if (slide.videojs.duration() > 0) {
-                    Offline.off('down');
-                    slide.videojs.off('progress');
-
-                    var dur = slide.videojs.duration();
-
-                    scope.$apply(function () {
-                      // Set the progressbar animation.
-                      startProgressBar(dur);
-                    });
+                    // Metadata/duration found stop the interval
+                    $interval.cancel(inteval);
                   }
-                });
+                }, 500);
 
-                slide.videojs.ready(function () {
-                  slide.videojs.play();
-                });
+                // Go to the next slide when video playback has ended.
+                slide.video.onended = function(event) {
+                  itkLogFactory.info("Video playback ended.", event);
+                  $timeout(function () {
+                    scope.$apply(function () {
+                      nextSlide();
+                    });
+                  },
+                  1000);
+                };
               }, fadeTime);
             }
             else {
