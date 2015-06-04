@@ -270,10 +270,14 @@
               Offline.on('down', mediaLoadNotConnectedError);
               Offline.check();
 
-              timeout = $timeout(function () {
-                // Get hold of the video element.
-                slide.video = document.getElementById('videoPlayer-' + slide.uniqueId);
+              // Get hold of the video element.
+              slide.video = document.getElementById('videoPlayer-' + slide.uniqueId);
 
+              // Reset video position to prevent flicker from latest playback.
+              slide.video.currentTime = 0;
+
+              // Fade timeout to ensure video don't start before it's displayed.
+              timeout = $timeout(function () {
                 // Play the video.
                 slide.video.play();
 
