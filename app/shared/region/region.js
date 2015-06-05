@@ -83,6 +83,25 @@
           };
 
           /**
+           * Reset the progress bar.
+           */
+          var resetProgressBox = function resetProgressBox() {
+            scope.progressBoxElements = 0;
+            scope.progressBoxElementsIndex = 0;
+
+            scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
+              var channel = scope.channels[scope.displayIndex][channelKey];
+              if (channel.isScheduled) {
+                channel.slides.forEach(function (element) {
+                  if (element.isScheduled) {
+                    scope.progressBoxElements++;
+                  }
+                });
+              }
+            });
+          };
+
+          /**
            * Is the slide scheduled to be shown?
            *
            * Returns true if the slide is scheduled to be shown now.
@@ -144,10 +163,9 @@
            * @returns {boolean}
            */
           var isChannelScheduled = function channelScheduled(channel) {
-            console.log(channel);
             // If no schedule repeat is set, it should be shown all the time.
             if (!channel.schedule_repeat) {
-              console.log("!channel.schedule_repeat");
+              itkLogFactory.info("Channel scheduling: !channel.schedule_repeat");
               return true;
             }
 
@@ -161,7 +179,7 @@
 
             // If all 3 parameters are not set return.
             if (!hourFrom && !hourTo && days.length === 0) {
-              console.log("!hourFrom && !hourTo && !days");
+              itkLogFactory.info("Channel scheduling: !hourFrom && !hourTo && !days");
               return true;
             }
 
@@ -176,17 +194,17 @@
 
             // Is it within scheduled hours?
             if (repeatToday) {
-              console.log("repeatToday");
+              itkLogFactory.info("Channel scheduling: repeatToday");
               if (hourFrom > hourTo) {
-                console.log("hourFrom > hourTo");
+                itkLogFactory.info("Channel scheduling: hourFrom > hourTo");
                 return false;
               }
 
-              console.log("nowHour >= hourFrom && nowHour < hourTo");
+              itkLogFactory.info("Channel scheduling: nowHour >= hourFrom && nowHour < hourTo");
               return nowHour >= hourFrom && nowHour < hourTo;
             }
 
-            console.log('schedule false');
+            itkLogFactory.info('Channel scheduling: schedule false');
             return false;
           };
 
@@ -214,23 +232,33 @@
           };
 
           /**
-           * Go to next channel
+           * Check if there are any slides that are scheduled.
            *
-           * Switch to the next channel or cycle to the first. S
+           * Todo: Remove forEach since the return from them does not apply to the surrounding function, but only the anonymous inner function.
            */
-          var nextChannel = function() {
-            channelKey++;
-            // If more channels remain to be shown, go to next channel.
-            if (channelKey < scope.channelKeys[scope.displayIndex].length) {
-              scope.channelIndex = scope.channelKeys[scope.displayIndex][channelKey];
-              scope.slideIndex = -1;
+          var slidesRemainToBeShown = function slidesRemainToBeShown() {
+            // Check if there are any slides scheduled in the current channel.
+            scope.channels[scope.displayIndex][scope.channelIndex].slides.forEach(function (element) {
+              if (element.isScheduled) {
+                return true;
+              }
+            });
 
-              nextSlide();
+            for (var i = channelKey; i < scope.channelKeys[scope.displayIndex].length; i++) {
+              var channelIndex = scope.channelKeys[scope.displayIndex][i];
+              var channel = scope.channels[scope.displayIndex][channelIndex];
+
+              if (channel.isScheduled) {
+                // Check if there are any slides scheduled in the current channel.
+                channel.slides.forEach(function (element) {
+                  if (element.isScheduled) {
+                    return true;
+                  }
+                });
+              }
             }
-            // Else restart the show.
-            else {
-              restartShow();
-            }
+
+            return false;
           };
 
           /**
@@ -269,36 +297,45 @@
           };
 
           /**
-           * Reset the progress bar.
+           * Calls nextChannel.
+           *
+           * @TODO: Find way to avoid this call from nextChannel().
            */
-          var resetProgressBox = function resetProgressBox() {
-            scope.progressBoxElements = 0;
-            scope.progressBoxElementsIndex = 0;
-
-            scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
-              var channel = scope.channels[scope.displayIndex][channelKey];
-              if (channel.isScheduled) {
-                channel.slides.forEach(function (element) {
-                  if (element.isScheduled) {
-                    scope.progressBoxElements++;
-                  }
-                });
-              }
-            });
+          var goToNextChannel = function goToNextChannel() {
+            nextChannel();
           };
 
           /**
-           * Check if there are any slides that are scheduled.
+           * Go to next channel
+           *
+           * Switch to the next channel or cycle to the first. S
            */
-          var slidesRemainToBeShown = function slidesRemainToBeShown() {
-            // Check if there are any slides scheduled.
-            scope.channels[scope.displayIndex][scope.channelIndex].slides.forEach(function (element) {
-              if (element.isScheduled) {
-                return true;
-              }
-            });
+          var nextChannel = function nextChannel() {
+            itkLogFactory.info("next channel");
 
-            return false;
+            channelKey++;
+
+            // If more channels remain to be shown, go to next channel.
+            if (channelKey < scope.channelKeys[scope.displayIndex].length) {
+              var nextChannelIndex = scope.channelKeys[scope.displayIndex][channelKey];
+              var nextChannel = scope.channels[scope.displayIndex][nextChannelIndex];
+              if (nextChannel.isScheduled) {
+                scope.channelIndex = nextChannelIndex;
+                scope.slideIndex = -1;
+
+                nextSlide();
+              }
+              else {
+                $timeout.cancel(timeout);
+                $timeout(function() {
+                  goToNextChannel();
+                }, 100);
+              }
+            }
+            // Else restart the show.
+            else {
+              restartShow();
+            }
           };
 
           /**
@@ -332,14 +369,15 @@
             //   when no slide are scheduled.
             if (!currentSlide.isScheduled) {
               if (slidesRemainToBeShown()) {
+                itkLogFactory.info('Slide schedule: slides remain.');
                 nextSlide();
               }
               else {
-                // If no slide scheduled, go to end of array, wait 5 second, try again.
-                scope.slideIndex = scope.channels[scope.displayIndex][scope.channelIndex].length;
+                itkLogFactory.info('Slide schedule: slides do not remain');
+                // If no slide scheduled, wait 5 seconds, then restart show.
                 $timeout.cancel(timeout);
                 $timeout(function () {
-                  nextSlide();
+                  restartShow();
                 }, 5000);
               }
             }
@@ -355,8 +393,8 @@
            */
           var mediaLoadNotConnectedError = function mediaLoadNotConnectedError() {
             itkLogFactory.info("Offline (while playing video) - jumping to next slide.");
-            $timeout.cancel(timeout);
             Offline.off('down');
+            $timeout.cancel(timeout);
             $timeout(function () {
               nextSlide();
               Offline.check();
@@ -530,11 +568,6 @@
                 // Update key arrays
                 scope.channelKeys[0] = Object.keys(scope.channels[0]);
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
-
-
-                console.log(scope.channels);
-                console.log(scope.channelKeys);
-
 
                 // Select first channel.
                 channelKey = 0;
