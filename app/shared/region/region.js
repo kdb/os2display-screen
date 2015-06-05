@@ -153,14 +153,14 @@
 
             var now = new Date();
             var nowDay = now.getDay();
-            var nowHour = now.getHour();
+            var nowHour = now.getHours();
 
             var hourFrom = channel.schedule_repeat_from;
             var hourTo = channel.schedule_repeat_to;
             var days = channel.schedule_repeat_days;
 
             // If all 3 parameters are not set return.
-            if (!hourFrom && !hourTo && !days) {
+            if (!hourFrom && !hourTo && days.length === 0) {
               console.log("!hourFrom && !hourTo && !days");
               return true;
             }
@@ -223,13 +223,14 @@
             // If more channels remain to be shown, go to next channel.
             if (channelKey < scope.channelKeys[scope.displayIndex].length) {
               scope.channelIndex = scope.channelKeys[scope.displayIndex][channelKey];
+              scope.slideIndex = -1;
+
+              nextSlide();
             }
             // Else restart the show.
             else {
               restartShow();
             }
-
-            scope.slideIndex = 0;
           };
 
           /**
@@ -239,6 +240,7 @@
            *   or if there have been changes, go to the other channels array.
            */
           var restartShow = function restartShow() {
+            itkLogFactory.info("restart show");
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
 
             scope.slideIndex = -1;
@@ -262,6 +264,8 @@
 
             // Reset progress box
             resetProgressBox();
+
+            nextSlide();
           };
 
           /**
@@ -275,9 +279,8 @@
               var channel = scope.channels[scope.displayIndex][channelKey];
               if (channel.isScheduled) {
                 channel.slides.forEach(function (element) {
-                  if (isSlideScheduled(element)) {
+                  if (element.isScheduled) {
                     scope.progressBoxElements++;
-                    element.isScheduled = true;
                   }
                 });
               }
@@ -302,11 +305,14 @@
            * Set the next slide, and call displaySlide.
            */
           var nextSlide = function nextSlide() {
+            itkLogFactory.info("next slide");
+
             var nextSlideIndex = scope.slideIndex + 1;
 
             // If overlapping current channel.slides length
             if (nextSlideIndex >= scope.channels[scope.displayIndex][scope.channelIndex].slides.length) {
               nextChannel();
+              return;
             }
 
             // If slides array is empty, wait 5 seconds, try again.
@@ -339,7 +345,7 @@
             }
             // If the slide is scheduled, show it.
             else {
-              scope.progressBoxElements++;
+              scope.slideIndex = nextSlideIndex;
               displaySlide();
             }
           };
@@ -525,17 +531,18 @@
                 scope.channelKeys[0] = Object.keys(scope.channels[0]);
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
 
+
+                console.log(scope.channels);
+                console.log(scope.channelKeys);
+
+
                 // Select first channel.
                 channelKey = 0;
                 scope.channelIndex = scope.channelKeys[0][channelKey];
 
-                console.log(scope.channels[0]);
-
                 // Update which channels should be viewed.
                 updateChannelsScheduled();
                 updateSlidesScheduled();
-
-                console.log(scope.channels[0]);
 
                 // Reset progress box
                 resetProgressBox();
