@@ -237,12 +237,16 @@
            * Todo: Remove forEach since the return from them does not apply to the surrounding function, but only the anonymous inner function.
            */
           var slidesRemainToBeShown = function slidesRemainToBeShown() {
+            var element;
+
             // Check if there are any slides scheduled in the current channel.
-            scope.channels[scope.displayIndex][scope.channelIndex].slides.forEach(function (element) {
+            for (var j = 0; j < scope.channels[scope.displayIndex][scope.channelIndex].slides.length; j++) {
+              element = scope.channels[scope.displayIndex][scope.channelIndex].slides[j];
+
               if (element.isScheduled) {
                 return true;
               }
-            });
+            }
 
             for (var i = channelKey; i < scope.channelKeys[scope.displayIndex].length; i++) {
               var channelIndex = scope.channelKeys[scope.displayIndex][i];
@@ -250,11 +254,13 @@
 
               if (channel.isScheduled) {
                 // Check if there are any slides scheduled in the current channel.
-                channel.slides.forEach(function (element) {
+                for (var j = 0; j < channel.slides.length; j++) {
+                  element = channel.slides[j];
+
                   if (element.isScheduled) {
                     return true;
                   }
-                });
+                }
               }
             }
 
