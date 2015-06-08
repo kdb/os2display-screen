@@ -107,9 +107,7 @@
               }
             }
 
-            scope.$apply(function() {
-              scope.progressBoxElements = numberOfScheduledSlides;
-            });
+            scope.progressBoxElements = numberOfScheduledSlides;
           };
 
           /**
