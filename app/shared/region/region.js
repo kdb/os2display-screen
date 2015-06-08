@@ -84,21 +84,31 @@
           };
 
           /**
-           * Reset the progress bar.
+           * Reset the progress box.
            */
           var resetProgressBox = function resetProgressBox() {
+            itkLogFactory.info('resetProgressBox');
             scope.progressBoxElements = 0;
             scope.progressBoxElementsIndex = 0;
 
-            scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
+            var numberOfScheduledSlides = 0;
+
+            for (var i = 0; i < scope.channelKeys[scope.displayIndex].length; i++) {
+              var channelKey = scope.channelKeys[scope.displayIndex][i];
               var channel = scope.channels[scope.displayIndex][channelKey];
+
               if (channel.isScheduled) {
-                channel.slides.forEach(function (element) {
-                  if (element.isScheduled) {
-                    scope.progressBoxElements++;
+                for (var j = 0; j < channel.slides.length; j++) {
+                  var slide = channel.slides[j];
+                  if (slide.isScheduled) {
+                    numberOfScheduledSlides++;
                   }
-                });
+                }
               }
+            }
+
+            scope.$apply(function() {
+              scope.progressBoxElements = numberOfScheduledSlides;
             });
           };
 
@@ -234,23 +244,12 @@
 
           /**
            * Check if there are any slides that are scheduled.
-           *
-           * Todo: Remove forEach since the return from them does not apply to the surrounding function, but only the anonymous inner function.
            */
           var slidesRemainToBeShown = function slidesRemainToBeShown() {
             var element;
 
-            // Check if there are any slides scheduled in the current channel.
-            for (var j = 0; j < scope.channels[scope.displayIndex][scope.channelIndex].slides.length; j++) {
-              element = scope.channels[scope.displayIndex][scope.channelIndex].slides[j];
-
-              if (element.isScheduled) {
-                return true;
-              }
-            }
-
             // Check all channels to see if there are slides to show.
-            for (var i = channelKey; i < scope.channelKeys[scope.displayIndex].length; i++) {
+            for (var i = 0; i < scope.channelKeys[scope.displayIndex].length; i++) {
               var channelIndex = scope.channelKeys[scope.displayIndex][i];
               var channel = scope.channels[scope.displayIndex][channelIndex];
 
@@ -280,7 +279,7 @@
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
 
             scope.slideIndex = -1;
-            channelKey = 0;
+            channelKey = -1;
 
             // Swap to updated channel array, if there have been changes to channels.
             if (scope.slidesUpdated) {
@@ -292,8 +291,6 @@
               scope.slidesUpdated = false;
             }
 
-            scope.channelIndex = scope.channelKeys[scope.displayIndex][channelKey];
-
             // Mark channels and slides that should not be show as isScheduled = false
             updateChannelsScheduled();
             updateSlidesScheduled();
@@ -301,7 +298,24 @@
             // Reset progress box
             resetProgressBox();
 
-            nextSlide();
+            // If no slides are to be displayed, wait 5 seconds and restart.
+            if (!slidesRemainToBeShown()) {
+              $timeout.cancel(timeout);
+              timeout = $timeout(goRestartShow, 5000);
+            }
+            else {
+              // Show next slide.
+              nextChannel();
+            }
+          };
+
+          /**
+           * Calls restartShow.
+           *
+           * @TODO: Find way to avoid this call from restartShow().
+           */
+          var goRestartShow = function goRestartShow() {
+            restartShow();
           };
 
           /**
@@ -353,7 +367,7 @@
             var nextSlideIndex = scope.slideIndex + 1;
 
             // If overlapping current channel.slides length
-            if (nextSlideIndex >= scope.channels[scope.displayIndex][scope.channelIndex].slides.length) {
+            if (!scope.channels[scope.displayIndex][scope.channelIndex] || nextSlideIndex >= scope.channels[scope.displayIndex][scope.channelIndex].slides.length) {
               nextChannel();
               return;
             }
@@ -366,7 +380,8 @@
             }
 
             // Get current slide.
-            var currentSlide = scope.channels[scope.displayIndex][scope.channelIndex].slides[nextSlideIndex];
+            scope.slideIndex = nextSlideIndex;
+            var currentSlide = scope.channels[scope.displayIndex][scope.channelIndex].slides[scope.slideIndex];
 
             // If slide is not scheduled,
             //   make sure a slide is scheduled, to be shown, then go to next slide.
@@ -389,7 +404,6 @@
             }
             // If the slide is scheduled, show it.
             else {
-              scope.slideIndex = nextSlideIndex;
               displaySlide();
             }
           };
@@ -576,22 +590,21 @@
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
 
                 // Select first channel.
-                channelKey = 0;
-                scope.channelIndex = scope.channelKeys[0][channelKey];
-
-                // Update which channels should be viewed.
-                updateChannelsScheduled();
-                updateSlidesScheduled();
-
-                // Reset progress box
-                resetProgressBox();
+                channelKey = -1;
 
                 // Make sure the slides have been loaded. Then start the show.
                 $timeout(function () {
                   scope.slideIndex = -1;
-
                   scope.running = true;
-                  nextSlide();
+
+                  // Mark channels and slides that should not be show as isScheduled = false
+                  updateChannelsScheduled();
+                  updateSlidesScheduled();
+
+                  // Reset progress box
+                  resetProgressBox();
+
+                  nextChannel();
                 }, 1000);
               });
             }
