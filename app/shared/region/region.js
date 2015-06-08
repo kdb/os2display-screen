@@ -158,7 +158,7 @@
 
                 scope.channelIndex = scope.channelKeys[scope.displayIndex][channelKey];
 
-                // Reset progress box
+                // Reset progress box.
                 resetProgressBox();
               }
 
@@ -213,95 +213,115 @@
           };
 
           /**
-           * Handler for Offline.down event.
+           * Handle video error.
+           *
+           * @param event
+           *   If defined it's a normal error event else it's offline down.
            */
-          var mediaLoadNotConnectedError = function mediaLoadNotConnectedError() {
-            itkLogFactory.info("Offline (while playing video) - jumping to next slide.");
-            $timeout.cancel(timeout);
+          var videoErrorHandling = function videoErrorHandling(event) {
+            if (event !== undefined) {
+              // Normal javascript error event.
+              event.target.removeEventListener(event.type, videoErrorHandling);
+              itkLogFactory.error('Network connection.', event);
+            }
+            else {
+              itkLogFactory.error('Unknown video network connection error.');
+            }
             Offline.off('down');
-            $timeout(function () {
-              nextSlide();
-              Offline.check();
-            }, 1000);
+
+            // Go to the next slide.
+            nextSlide();
           };
 
           /**
            * Display the current slide.
-           * Call next slide.
-           *
-           * Include 2 seconds in timeout for fade in/outs.
            */
           var displaySlide = function () {
+             // To be sure to be sure that the timeout is completed from the last slide.
             $timeout.cancel(timeout);
-            Offline.off('down');
 
+            // Reset the UI elements (Slide counter display x/y and progress bar.
+            resetProgressBar();
             scope.progressBoxElementsIndex++;
 
-            resetProgressBar();
-
+            // Get the next slide.
             var slide = scope.channels[scope.displayIndex][scope.channelIndex][scope.slideIndex];
-
-            // Handle empty slides array.
             if (slide === undefined) {
+              itkLogFactory.info('No slides yet... waiting 5 seconds');
+
               // Wait five seconds and try again.
               $timeout(function () {
                 displaySlide();
               }, 5000);
-
               return;
             }
 
             // Handle video input or regular slide.
             if (slide.media_type === 'video') {
+              // If media is empty go to the next slide.
               if (slide.media.length <= 0) {
                 nextSlide();
               }
 
-              // Check to make sure the video can download, else go to next slide.
+              // Check if there is an internet connection.
+              Offline.on('down', videoErrorHandling);
+              Offline.check();
               if (Offline.state === 'down') {
-                itkLogFactory.info("Offline (before playing video) - jumping to next slide.");
-                nextSlide();
-                Offline.check();
-
+                videoErrorHandling(undefined);
                 return;
               }
 
-              // Check if there is an internet connection.
-              Offline.on('down', mediaLoadNotConnectedError);
-              Offline.check();
-
               // Get hold of the video element.
-              slide.video = document.getElementById('videoPlayer-' + slide.uniqueId);
+              var video = document.getElementById('videoPlayer-' + slide.uniqueId);
+
+              // Add error handling.
+              video.addEventListener('error', videoErrorHandling);
 
               // Reset video position to prevent flicker from latest playback.
-              slide.video.currentTime = 0;
+              try {
+                // Load video to ensure playback after possible errors from last playback. If not called
+                // the video will not play.
+                video.load();
+                video.currentTime = 0;
+              }
+              catch (error) {
+                itkLogFactory.info('Video content might not be loaded, so reset current time not possible');
+
+                // Use the error handling to get next slide.
+                videoErrorHandling(undefined);
+              }
 
               // Fade timeout to ensure video don't start before it's displayed.
               timeout = $timeout(function () {
-                // Play the video.
-                slide.video.play();
-
                 // Create interval to get video duration (ready state larger than one is meta-data loaded).
-                var inteval = $interval(function() {
-                  if (slide.video.readyState > 0) {
-                    var duration = Math.round(slide.video.duration);
+                var interval = $interval(function() {
+                  if (video.readyState > 0) {
+                    var duration = Math.round(video.duration);
                     startProgressBar(duration);
 
-                    // Metadata/duration found stop the interval
-                    $interval.cancel(inteval);
+                    // Metadata/duration found stop the interval.
+                    $interval.cancel(interval);
                   }
                 }, 500);
 
                 // Go to the next slide when video playback has ended.
-                slide.video.onended = function(event) {
+                video.onended = function ended(event) {
                   itkLogFactory.info("Video playback ended.", event);
                   $timeout(function () {
                     scope.$apply(function () {
+                      // Remove error handling.
+                      video.removeEventListener('error', videoErrorHandling);
+                      Offline.off('down');
+
+                      // Go to the next slide.
                       nextSlide();
                     });
                   },
                   1000);
                 };
+
+                // Play the video.
+                video.play();
               }, fadeTime);
             }
             else {
