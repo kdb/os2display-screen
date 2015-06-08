@@ -19,8 +19,8 @@
    *   region (integer): region id.
    *   show-progress (boolean): should the progress bar/box be displayed?
    */
-  app.directive('region', ['$rootScope', '$timeout', 'itkLogFactory',
-    function ($rootScope, $timeout, itkLogFactory) {
+  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLogFactory',
+    function ($rootScope, $timeout, $interval, itkLogFactory) {
       return {
         restrict: 'E',
         scope: {
@@ -176,7 +176,6 @@
           var isChannelScheduled = function isChannelScheduled(channel) {
             // If no schedule repeat is set, it should be shown all the time.
             if (!channel.schedule_repeat) {
-              itkLogFactory.info("Channel scheduling: !channel.schedule_repeat");
               return true;
             }
 
@@ -190,7 +189,6 @@
 
             // If all 3 parameters are not set return.
             if (!hourFrom && !hourTo && days.length === 0) {
-              itkLogFactory.info("Channel scheduling: !hourFrom && !hourTo && !days");
               return true;
             }
 
@@ -205,17 +203,13 @@
 
             // Is it within scheduled hours?
             if (repeatToday) {
-              itkLogFactory.info("Channel scheduling: repeatToday");
               if (hourFrom > hourTo) {
-                itkLogFactory.info("Channel scheduling: hourFrom > hourTo");
                 return false;
               }
 
-              itkLogFactory.info("Channel scheduling: nowHour >= hourFrom && nowHour < hourTo");
               return nowHour >= hourFrom && nowHour < hourTo;
             }
 
-            itkLogFactory.info('Channel scheduling: schedule false');
             return false;
           };
 
@@ -409,110 +403,114 @@
           };
 
           /**
-           * Handler for Offline.down event.
+           * Handle video error.
+           *
+           * @param event
+           *   If defined it's a normal error event else it's offline down.
            */
-          var mediaLoadNotConnectedError = function mediaLoadNotConnectedError() {
-            itkLogFactory.info("Offline (while playing video) - jumping to next slide.");
+          var videoErrorHandling = function videoErrorHandling(event) {
+            if (event !== undefined) {
+              // Normal javascript error event.
+              event.target.removeEventListener(event.type, videoErrorHandling);
+              itkLogFactory.error('Network connection.', event);
+            }
+            else {
+              itkLogFactory.error('Unknown video network connection error.');
+            }
             Offline.off('down');
-            $timeout.cancel(timeout);
-            $timeout(function () {
-              nextSlide();
-              Offline.check();
-            }, 1000);
+
+            // Go to the next slide.
+            nextSlide();
           };
 
           /**
            * Display the current slide.
-           * Call next slide.
-           *
-           * Include 2 seconds in timeout for fade in/outs.
            */
           var displaySlide = function () {
+             // To be sure to be sure that the timeout is completed from the last slide.
             $timeout.cancel(timeout);
-            Offline.off('down');
 
+            // Reset the UI elements (Slide counter display x/y and progress bar.
+            resetProgressBar();
             scope.progressBoxElementsIndex++;
 
-            resetProgressBar();
-
             var slide = scope.channels[scope.displayIndex][scope.channelIndex].slides[scope.slideIndex];
-
-            // Handle empty slides array.
             if (slide === undefined) {
+              itkLogFactory.info('No slides yet... waiting 5 seconds');
+
               // Wait five seconds and try again.
               $timeout(function () {
                 displaySlide();
               }, 5000);
-
               return;
             }
 
             // Handle video input or regular slide.
             if (slide.media_type === 'video') {
+              // If media is empty go to the next slide.
               if (slide.media.length <= 0) {
                 nextSlide();
               }
 
-              // Check to make sure the video can download, else go to next slide.
+              // Check if there is an internet connection.
+              Offline.on('down', videoErrorHandling);
+              Offline.check();
               if (Offline.state === 'down') {
-                itkLogFactory.info("Offline (before playing video) - jumping to next slide.");
-                nextSlide();
-                Offline.check();
-
+                videoErrorHandling(undefined);
                 return;
               }
 
-              Offline.on('down', mediaLoadNotConnectedError);
+              // Get hold of the video element.
+              var video = document.getElementById('videoPlayer-' + slide.uniqueId);
 
-              Offline.check();
+              // Add error handling.
+              video.addEventListener('error', videoErrorHandling);
 
+              // Reset video position to prevent flicker from latest playback.
+              try {
+                // Load video to ensure playback after possible errors from last playback. If not called
+                // the video will not play.
+                video.load();
+                video.currentTime = 0;
+              }
+              catch (error) {
+                itkLogFactory.info('Video content might not be loaded, so reset current time not possible');
+
+                // Use the error handling to get next slide.
+                videoErrorHandling(undefined);
+              }
+
+              // Fade timeout to ensure video don't start before it's displayed.
               timeout = $timeout(function () {
-                if (!slide.videojs) {
-                  slide.videojs = videojs('videoPlayer' + slide.uniqueId, {
-                    "controls": false,
-                    "autoplay": false,
-                    "preload": "none"
-                  });
-                }
-                slide.videojs.off();
-                slide.videojs.load();
+                // Create interval to get video duration (ready state larger than one is meta-data loaded).
+                var interval = $interval(function() {
+                  if (video.readyState > 0) {
+                    var duration = Math.round(video.duration);
+                    startProgressBar(duration);
 
-                // When the video is done, load next slide.
-                slide.videojs.one('ended', function () {
-                  slide.videojs.off();
-                  scope.$apply(function () {
-                    itkLogFactory.info("Video ended.");
-                    nextSlide();
-                  });
-                });
-
-                slide.videojs.one('error', function (event) {
-                  itkLogFactory.error("Error (while playing video).", event);
-                  $timeout(function () {
-                      scope.$apply(function () {
-                        nextSlide();
-                      });
-                    },
-                    1000);
-                });
-
-                slide.videojs.on('progress', function () {
-                  if (slide.videojs.duration() > 0) {
-                    Offline.off('down');
-                    slide.videojs.off('progress');
-
-                    var dur = slide.videojs.duration();
-
-                    scope.$apply(function () {
-                      // Set the progressbar animation.
-                      startProgressBar(dur);
-                    });
+                    // Metadata/duration found stop the interval.
+                    $interval.cancel(interval);
                   }
-                });
+                }, 500);
 
-                slide.videojs.ready(function () {
-                  slide.videojs.play();
-                });
+                // Go to the next slide when video playback has ended.
+                video.onended = function ended(event) {
+                  itkLogFactory.info("Video playback ended.", event);
+                  $timeout(function () {
+                    scope.$apply(function () {
+                      // Remove error handling.
+                      video.removeEventListener('error', videoErrorHandling);
+                      Offline.off('down');
+
+                      // Go to the next slide.
+                      nextSlide();
+                    });
+                  },
+                  1000);
+                };
+
+                // Play the video.
+                video.play();
               }, fadeTime);
             }
             else {
