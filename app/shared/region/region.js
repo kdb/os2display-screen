@@ -37,10 +37,12 @@
             {},
             {}
           ];
+          // Since channels are set by keys, we need arrays of the keys, that we can cycle between.
           scope.channelKeys = [
             [],
             []
           ];
+          var channelKey = -1;
 
           scope.slideIndex = null;
           scope.channelIndex = null;
@@ -50,7 +52,6 @@
 
           var timeout = null;
           var fadeTime = 1000;
-          var channelKey = -1;
 
           // Used by progress bar
           scope.progressBoxElements = 0;
@@ -109,8 +110,8 @@
            * @param slide
            * @returns {boolean}
            */
-          var isSlideScheduled = function slideScheduled(slide) {
-            var now = new Date().getTime() / 1000;
+          var isSlideScheduled = function isSlideScheduled(slide) {
+            var now = Math.round((new Date()).getTime() / 1000);
             var from = slide.schedule_from;
             var to = slide.schedule_to;
 
@@ -139,8 +140,8 @@
            *   The channel to evaluate.
            * @returns {boolean}
            */
-          var isChannelPublished = function channelPublished(channel) {
-            var now = (new Date()).getTime() / 1000;
+          var isChannelPublished = function isChannelPublished(channel) {
+            var now = Math.round((new Date()).getTime() / 1000);
             var publishFrom = channel.publish_from;
             var publishTo = channel.publish_to;
 
@@ -162,7 +163,7 @@
            *   The channel to evaluate.
            * @returns {boolean}
            */
-          var isChannelScheduled = function channelScheduled(channel) {
+          var isChannelScheduled = function isChannelScheduled(channel) {
             // If no schedule repeat is set, it should be shown all the time.
             if (!channel.schedule_repeat) {
               itkLogFactory.info("Channel scheduling: !channel.schedule_repeat");
@@ -248,14 +249,15 @@
               }
             }
 
+            // Check all channels to see if there are slides to show.
             for (var i = channelKey; i < scope.channelKeys[scope.displayIndex].length; i++) {
               var channelIndex = scope.channelKeys[scope.displayIndex][i];
               var channel = scope.channels[scope.displayIndex][channelIndex];
 
               if (channel.isScheduled) {
                 // Check if there are any slides scheduled in the current channel.
-                for (var j = 0; j < channel.slides.length; j++) {
-                  element = channel.slides[j];
+                for (var k = 0; k < channel.slides.length; k++) {
+                  element = channel.slides[k];
 
                   if (element.isScheduled) {
                     return true;
@@ -333,9 +335,7 @@
               }
               else {
                 $timeout.cancel(timeout);
-                $timeout(function() {
-                  goToNextChannel();
-                }, 100);
+                $timeout(goToNextChannel, 100);
               }
             }
             // Else restart the show.
