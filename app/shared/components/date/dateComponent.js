@@ -5,15 +5,12 @@
 
 /**
  * Setup the module.
- *
- * Requires
- *   moment.js
  */
 (function () {
   'use strict';
 
   var app;
-  app = angular.module("itkDateComponent", []);
+  app = angular.module('itkDateComponent', []);
 
   /**
    * date component directive.
@@ -27,15 +24,25 @@
         replace: true,
         templateUrl: 'app/shared/components/date/date.html',
         scope: {
+          theme: '@'
         },
         link: function (scope) {
           scope.thisDate = new Date();
 
-          $interval(function() {
+          // Update current date every minute.
+          var interval = $interval(function() {
             // Update current datetime.
-           // scope.date = moment();
             scope.thisDate = new Date();
-          }, 10000);
+          }, 60000);
+
+          // Register event listener for destroy.
+          //   Cleanup interval.
+          scope.$on('$destroy', function() {
+            if (angular.isDefined(interval)) {
+              $interval.cancel(interval);
+              interval = undefined;
+            }
+          });
         }
       };
     }
