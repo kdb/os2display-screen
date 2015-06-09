@@ -13,7 +13,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
     'use strict';
 
     // The template to render in the index.html's ng-include.
-    $scope.template = 'app/pages/index/init.html';
+    $scope.template = 'app/pages/index/init.html?' + window.config.version;
     // Is the screen running (has the screen template been loaded?).
     $scope.running = false;
 
@@ -25,7 +25,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
      */
     $rootScope.$on('activationNotComplete', function() {
       $scope.$apply(function () {
-        $scope.template = 'app/pages/notActivated/not-activated.html';
+        $scope.template = 'app/pages/notActivated/not-activated.html?' + window.config.version;
       });
     });
 
@@ -34,7 +34,7 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
      */
     $rootScope.$on('awaitingContent', function() {
       $scope.$apply(function () {
-        $scope.template = 'app/pages/index/awaiting-content.html';
+        $scope.template = 'app/pages/index/awaiting-content.html?' + window.config.version;
       });
     });
 

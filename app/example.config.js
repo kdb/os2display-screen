@@ -18,5 +18,6 @@ window.config = {
     "secure": false
   },
   // Display debug messages.
-  "debug": false
+  "debug": false,
+  "version": "dev"
 };
