@@ -461,6 +461,9 @@
               // Get hold of the video element.
               var video = document.getElementById('videoPlayer-' + slide.uniqueId);
 
+              // Update video.
+              updateVideoSources(video, false);
+
               // Add error handling.
               video.addEventListener('error', videoErrorHandling);
 
@@ -500,6 +503,9 @@
                       video.removeEventListener('error', videoErrorHandling);
                       Offline.off('down');
 
+                      // Remove video src.
+                      updateVideoSources(video, true);
+
                       // Go to the next slide.
                       nextSlide();
                     });
@@ -526,6 +532,30 @@
               }, (slide.duration) * 1000 + fadeTime * 2);
             }
           };
+
+
+          /**
+           * Helper function to update source for video.
+           *
+           * This is due to a memory leak problem in chrome.
+           *
+           * @param video
+           *   The video element.
+           * @param reset
+           *   If true src is unloaded else src is set from data-src.
+           */
+          var updateVideoSources = function updateVideoSources(video, reset) {
+            // Due to memory leak in chrome we change the src attribute.
+            var sources = video.getElementsByTagName('source');
+            for (var i = 0; i < sources.length; i++) {
+              if (reset) {
+                sources[i].setAttribute('src', '');
+              }
+              else {
+                sources[i].setAttribute('src', sources[i].getAttribute('data-src'));
+              }
+            }
+          }
 
           /**
            * Update which slides to show next.
