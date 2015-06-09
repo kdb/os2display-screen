@@ -19,8 +19,8 @@
    *   region (integer): region id.
    *   show-progress (boolean): should the progress bar/box be displayed?
    */
-  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLogFactory',
-    function ($rootScope, $timeout, $interval, itkLogFactory) {
+  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLog',
+    function ($rootScope, $timeout, $interval, itkLog) {
       return {
         restrict: 'E',
         scope: {
@@ -87,7 +87,7 @@
            * Reset the progress box.
            */
           var resetProgressBox = function resetProgressBox() {
-            itkLogFactory.info('resetProgressBox');
+            itkLog.info('resetProgressBox');
             scope.progressBoxElements = 0;
             scope.progressBoxElementsIndex = 0;
 
@@ -267,7 +267,7 @@
            *   or if there have been changes, go to the other channels array.
            */
           var restartShow = function restartShow() {
-            itkLogFactory.info("restart show");
+            itkLog.info("restart show");
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
 
             scope.slideIndex = -1;
@@ -325,7 +325,7 @@
            * Switch to the next channel or cycle to the first. S
            */
           var nextChannel = function nextChannel() {
-            itkLogFactory.info("next channel");
+            itkLog.info("next channel");
 
             channelKey++;
 
@@ -354,7 +354,7 @@
            * Set the next slide, and call displaySlide.
            */
           var nextSlide = function nextSlide() {
-            itkLogFactory.info("next slide");
+            itkLog.info("next slide");
 
             var nextSlideIndex = scope.slideIndex + 1;
 
@@ -382,11 +382,11 @@
             //   when no slide are scheduled.
             if (!currentSlide.isScheduled) {
               if (slidesRemainToBeShown()) {
-                itkLogFactory.info('Slide schedule: slides remain.');
+                itkLog.info('Slide schedule: slides remain.');
                 nextSlide();
               }
               else {
-                itkLogFactory.info('Slide schedule: slides do not remain');
+                itkLog.info('Slide schedule: slides do not remain');
                 // If no slide scheduled, wait 5 seconds, then restart show.
                 $timeout.cancel(timeout);
                 $timeout(function () {
@@ -410,10 +410,10 @@
             if (event !== undefined) {
               // Normal javascript error event.
               event.target.removeEventListener(event.type, videoErrorHandling);
-              itkLogFactory.error('Network connection.', event);
+              itkLog.error('Network connection.', event);
             }
             else {
-              itkLogFactory.error('Unknown video network connection error.');
+              itkLog.error('Unknown video network connection error.');
             }
             Offline.off('down');
 
@@ -434,7 +434,7 @@
 
             var slide = scope.channels[scope.displayIndex][scope.channelIndex].slides[scope.slideIndex];
             if (slide === undefined) {
-              itkLogFactory.info('No slides yet... waiting 5 seconds');
+              itkLog.info('No slides yet... waiting 5 seconds');
 
               // Wait five seconds and try again.
               $timeout(function () {
@@ -475,7 +475,7 @@
                 video.currentTime = 0;
               }
               catch (error) {
-                itkLogFactory.info('Video content might not be loaded, so reset current time not possible');
+                itkLog.info('Video content might not be loaded, so reset current time not possible');
 
                 // Use the error handling to get next slide.
                 videoErrorHandling(undefined);
@@ -496,7 +496,7 @@
 
                 // Go to the next slide when video playback has ended.
                 video.onended = function ended(event) {
-                  itkLogFactory.info("Video playback ended.", event);
+                  itkLog.info("Video playback ended.", event);
                   $timeout(function () {
                     scope.$apply(function () {
                       // Remove error handling.
@@ -585,7 +585,7 @@
               var id = "" + channel.data.id;
 
               if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
-                itkLogFactory.info("Removing channel " + channel.data.id + " from region " + scope.regionId);
+                itkLog.info("Removing channel " + channel.data.id + " from region " + scope.regionId);
 
                 delete scope.channels[otherDisplayIndex][id];
                 scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
@@ -595,7 +595,7 @@
               return;
             }
 
-            itkLogFactory.info("Adding channel " + channel.data.id + " to region " + scope.regionId);
+            itkLog.info("Adding channel " + channel.data.id + " to region " + scope.regionId);
 
             // The show is running simply update the slides.
             if (scope.running) {
