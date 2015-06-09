@@ -118,7 +118,7 @@ app.directive('itkLog', ['itkLogFactory', function (itkLogFactory) {
 
     return {
       restrict: 'E',
-      templateUrl: 'assets/modules/itkLog/log.html',
+      templateUrl: 'assets/modules/itkLog/log.html?1',
       link: function (scope) {
         scope.expanded = false;
 
