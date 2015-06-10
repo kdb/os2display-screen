@@ -1,24 +1,21 @@
 # ITK Logger module
-version 1.0.0
+version (1): 1.0.0
 
 ## Setup
 * Include stacktrace.js (https://github.com/stacktracejs/stacktrace.js) to the site. Tested with 0.6.4.
-* Change relevant values in itkLogConfig.js.
-* Include first itkLogConfig.js and then itkLog.js in your website.
+* Include the itkLog.js in the site.
+* Add "itkLog" to the global window.config object.
 
 ## Log all js errors
-Add the following config to the module.
+Add the following config to the global window.config variable:
 
 <pre>
-.config(function($provide) {
-  'use strict';
-
-  $provide.decorator("$exceptionHandler", ['$delegate', function ($delegate) {
-    return function (exception, cause) {
-      $delegate(exception, cause);
-    };
-  }]);
-});
+  "itkLog": {
+    "version": "1",
+    "errorCallback": null,
+    "logToConsole": true,
+    "logLevel": "all"
+  }
 </pre>
 
 ## Log levels

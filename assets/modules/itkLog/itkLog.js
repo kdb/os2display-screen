@@ -13,16 +13,17 @@
  * requires stacktrace.js - http://www.stacktracejs.com/
  *   tested with v0.6.4
  */
-var app = angular.module('itkLog', ['itkLogConfig']);
+var app = angular.module('itkLog', []);
 
 /**
  * itkLog
  */
-app.factory('itkLog', ['$http', '$timeout', '$log', 'itkLogConfig',
-    function ($http, $timeout, $log, itkLogConfig) {
+app.factory('itkLog', ['$http', '$timeout', '$log',
+    function ($http, $timeout, $log) {
       'use strict';
 
       var factory = {};
+      var config = window.config.itkLog;
 
       factory.message = null;
 
@@ -36,7 +37,7 @@ app.factory('itkLog', ['$http', '$timeout', '$log', 'itkLogConfig',
        *   Cause of error.
        */
       factory.error = function error(message, cause) {
-        if (itkLogConfig.logLevel !== 'none') {
+        if (config.logLevel !== 'none') {
           var error = {
             "type": "error",
             "date": new Date(),
@@ -47,12 +48,12 @@ app.factory('itkLog', ['$http', '$timeout', '$log', 'itkLogConfig',
 
           factory.message = error;
 
-          if (itkLogConfig.logToConsole) {
+          if (config.logToConsole) {
             $log.error(error);
           }
 
-          if (itkLogConfig.errorCallback) {
-            $http.post(itkLogConfig.errorCallback, error);
+          if (config.errorCallback) {
+            $http.post(config.errorCallback, error);
           }
         }
       };
@@ -66,14 +67,14 @@ app.factory('itkLog', ['$http', '$timeout', '$log', 'itkLogConfig',
        *   Clear log after timeout, if set.
        */
       factory.log = function log(message, timeout) {
-        if (itkLogConfig.logLevel === 'all') {
+        if (config.logLevel === 'all') {
           factory.message = {
             "type": "log",
             "date": new Date(),
             "message": message
           };
 
-          if (itkLogConfig.logToConsole) {
+          if (config.logToConsole) {
             $log.log(message);
           }
 
@@ -94,14 +95,14 @@ app.factory('itkLog', ['$http', '$timeout', '$log', 'itkLogConfig',
        *   Clear log after timeout, if set.
        */
       factory.info = function log(message, timeout) {
-        if (itkLogConfig.logLevel === 'all') {
+        if (config.logLevel === 'all') {
           factory.message = {
             "type": "info",
             "date": new Date(),
             "message": message
           };
 
-          if (itkLogConfig.logToConsole) {
+          if (config.logToConsole) {
             $log.info(message);
           }
 
@@ -122,14 +123,14 @@ app.factory('itkLog', ['$http', '$timeout', '$log', 'itkLogConfig',
        *   Clear log after timeout, if set.
        */
       factory.warn = function warn(message, timeout) {
-        if (itkLogConfig.logLevel === 'all') {
+        if (config.logLevel === 'all') {
           factory.message = {
             "type": "warn",
             "date": new Date(),
             "message": message
           };
 
-          if (itkLogConfig.logToConsole) {
+          if (config.logToConsole) {
             $log.warn(message);
           }
 
@@ -158,13 +159,15 @@ app.factory('itkLog', ['$http', '$timeout', '$log', 'itkLogConfig',
  *
  * Displays the current message from itkLog.
  */
-app.directive('itkLog', ['itkLog', 'itkLogConfig',
-    function (itkLog, itkLogConfig) {
+app.directive('itkLog', ['itkLog',
+    function (itkLog) {
       'use strict';
+
+      var config = window.config.itkLog;
 
       return {
         restrict: 'E',
-        templateUrl: 'assets/modules/itkLog/log.html?' + itkLogConfig.version,
+        templateUrl: 'assets/modules/itkLog/log.html?' + config.version,
         link: function (scope) {
           scope.expanded = false;
 
