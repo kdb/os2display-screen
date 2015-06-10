@@ -28,12 +28,17 @@ angular.module('ikApp', [
       // Allow loading from outer templates domain.
       '**'
     ]);
-  }).config(function($provide) {
+  }).config(function ($provide) {
     'use strict';
 
-    $provide.decorator("$exceptionHandler", ['$delegate', function ($delegate) {
-      return function (exception, cause) {
-        $delegate(exception, cause);
-      };
-    }]);
+    $provide.decorator("$exceptionHandler", ['$delegate', '$injector',
+      function ($delegate, $injector) {
+        return function (exception, cause) {
+          $delegate(exception, cause);
+
+          // Send the error to itkLog.
+          $injector.get('itkLog').error(exception, cause);
+        };
+      }
+    ]);
   });
