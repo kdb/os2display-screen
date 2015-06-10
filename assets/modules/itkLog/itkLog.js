@@ -22,9 +22,14 @@ app.factory('itkLog', ['$http', '$timeout', '$log',
     function ($http, $timeout, $log) {
       'use strict';
 
-      var factory = {};
+      // Check that window.config.itkLog exists.
+      if (!window.config || !window.config.itkLog) {
+        throw "itkLog Exception: window.config.itkLog does not exist";
+      }
+
       var config = window.config.itkLog;
 
+      var factory = {};
       factory.message = null;
 
       /**
@@ -162,6 +167,11 @@ app.factory('itkLog', ['$http', '$timeout', '$log',
 app.directive('itkLog', ['itkLog',
     function (itkLog) {
       'use strict';
+
+      // Check that window.config.itkLog exists.
+      if (!window.config || !window.config.itkLog) {
+        throw "itkLog Exception: window.config.itkLog does not exist";
+      }
 
       var config = window.config.itkLog;
 
