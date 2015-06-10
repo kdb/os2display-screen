@@ -26,6 +26,6 @@ window.config = {
     "version": "1",
     "errorCallback": null,
     "logToConsole": true,
-    "logLevel": "none"
+    "logLevel": "all"
   }
 };
