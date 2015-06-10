@@ -549,7 +549,10 @@
             var sources = video.getElementsByTagName('source');
             for (var i = 0; i < sources.length; i++) {
               if (reset) {
+                // @see http://www.attuts.com/aw-snap-solution-video-tag-dispose-method/ about the pause and load.
+                video.pause();
                 sources[i].setAttribute('src', '');
+                video.load();
               }
               else {
                 sources[i].setAttribute('src', sources[i].getAttribute('data-src'));
