@@ -28,7 +28,7 @@
           showProgress: '=',
           scale: '='
         },
-        templateUrl: 'app/shared/region/region.html',
+        templateUrl: 'app/shared/region/region.html?' + window.config.version,
         link: function (scope) {
           // To get smooth transitions between slides, channels consist of two arrays, that are switched between.
           // The current array consist of the channels that are in the current rotation, and the other array
