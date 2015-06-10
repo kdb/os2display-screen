@@ -18,6 +18,26 @@ Add the following config to the global window.config variable:
   }
 </pre>
 
+## Make itkLog catch all uncaught exceptions
+Add the following .config() of the module.
+ 
+<pre>
+.config(function ($provide) {
+    'use strict';
+
+    $provide.decorator("$exceptionHandler", ['$delegate', '$injector',
+      function ($delegate, $injector) {
+        return function (exception, cause) {
+          $delegate(exception, cause);
+
+          // Send the error to itkLog.
+          $injector.get('itkLog').error(exception, cause);
+        };
+      }
+    ]);
+  });
+</pre>
+
 ## Log levels
 Available log levels
 
