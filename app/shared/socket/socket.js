@@ -1,8 +1,8 @@
 /**
  * Web-socket factory using socket.io to communicate with the middleware.
  */
-angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
-  function ($rootScope, itkLogFactory) {
+angular.module('ikApp').factory('socket', ['$rootScope', 'itkLog',
+  function ($rootScope, itkLog) {
     'use strict';
 
     var factory = {};
@@ -97,7 +97,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
       file.setAttribute('src', config.resource.server + config.resource.uri + '/socket.io/socket.io.js');
       file.onload = function () {
         if (typeof io === "undefined") {
-          itkLogFactory.error("Socket.io not loaded");
+          itkLog.error("Socket.io not loaded");
 
           document.getElementsByTagName("head")[0].removeChild(file);
           window.setTimeout(loadSocket(callback), 100);
@@ -132,7 +132,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
         // Connection accepted, so lets store the token.
         token_cookie.set(token);
 
-        itkLogFactory.log("Connection to middleware");
+        itkLog.log("Connection to middleware");
 
         // If first time we connect change reconnection to true.
         if (!reconnection) {
@@ -164,31 +164,31 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
        * @TODO: HANDLE ERROR EVENT:
        */
       socket.on('error', function (error) {
-        itkLogFactory.error(error);
+        itkLog.error(error);
       });
 
       socket.on('disconnect', function(){
-        itkLogFactory.info('disconnect');
+        itkLog.info('disconnect');
       });
 
       socket.on('reconnect', function(){
-        itkLogFactory.info('reconnect');
+        itkLog.info('reconnect');
       });
 
       socket.on('reconnect_attempt', function(){
-        itkLogFactory.info('reconnect_attempt');
+        itkLog.info('reconnect_attempt');
       });
 
       socket.on('connect_error', function(){
-        itkLogFactory.error('connect_error');
+        itkLog.error('connect_error');
       });
 
       socket.on('reconnect_error', function(){
-        itkLogFactory.error('reconnect_error');
+        itkLog.error('reconnect_error');
       });
 
       socket.on('reconnect_failed', function(){
-        itkLogFactory.error('reconnect_failed');
+        itkLog.error('reconnect_failed');
       });
 
       // Ready event - if the server accepted the ready command.
@@ -198,7 +198,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
         if (data.statusCode !== 200) {
           // Screen not found will reload application on dis-connection event.
           if (data.statusCode !== 404) {
-            itkLogFactory.error('Code: ' + data.statusCode + ' - Connection error');
+            itkLog.error('Code: ' + data.statusCode + ' - Connection error');
           }
         }
         else {
@@ -219,6 +219,11 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
       socket.on('channelPush', function (data) {
         $rootScope.$emit('addChannel', data);
       });
+
+      // Get logout event and send it to the middleware.
+      $rootScope.$on('logout', function () {
+        socket.emit('logout');
+      });
     };
 
     /********************************
@@ -235,37 +240,78 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLogFactory',
     };
 
     /**
+     * Logout of the system.
+     */
+    factory.logout = function logout() {
+      // Send socket logout event.
+      $rootScope.$emit('logout');
+
+      // Remove cookie with token.
+      token_cookie.remove();
+
+      // Reload application.
+      location.reload(true);
+    };
+
+    /**
      * Activate the screen and connect.
      * @param activationCode
      *   Activation code for the screen.
      */
     factory.activateScreenAndConnect = function activateScreenAndConnect(activationCode) {
       // Build ajax post request.
-      var request = new XMLHttpRequest();
-      request.open('POST', config.resource.server + config.resource.uri + '/screen/activate', true);
-      request.setRequestHeader('Content-Type', 'application/json');
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', config.resource.server + config.resource.uri + '/screen/activate', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
 
-      request.onload = function (resp) {
-        if (request.readyState == 4 && request.status == 200) {
+      xhr.onload = function (resp) {
+        if (xhr.readyState == 4 && xhr.status == 200) {
           // Success.
-          resp = JSON.parse(request.responseText);
+          resp = JSON.parse(xhr.responseText);
 
           // Try to get connection to the proxy.
           connect(resp.token);
         }
+        else if (xhr.readyState == 4 && xhr.status == 409) {
+          resp = JSON.parse(xhr.responseText);
+          var dialog = confirm(resp.message);
+          if (dialog == true) {
+            // Create AJAX call to kick screens.
+            var kickXHR = new XMLHttpRequest();
+            kickXHR.open('POST', config.resource.server + config.resource.uri + '/screen/kick', true);
+            kickXHR.setRequestHeader('Content-Type', 'application/json');
+            kickXHR.setRequestHeader('Authorization', 'Bearer ' + resp.token);
+
+            // Screen should be kick now so try to re-activate.
+            kickXHR.onload = function (resp) {
+              activateScreenAndConnect(activationCode);
+            };
+
+            // Something went wrong.
+            kickXHR.onerror = function (exception) {
+              // There was a connection error of some sort
+              itkLog.error('Kick request failed.', exception);
+            };
+
+            // Send the request.
+            kickXHR.send(JSON.stringify({
+              "token": resp.token
+            }));
+          }
+        }
         else {
           // We reached our target server, but it returned an error
-          itkLogFactory.error('Activation could not be performed.', request);
+          itkLog.error(xhr.responseText, xhr);
         }
       };
 
-      request.onerror = function (exception) {
+      xhr.onerror = function (exception) {
         // There was a connection error of some sort
-        itkLogFactory.error('Activation request failed.', exception);
+        itkLog.error('Activation request failed.', exception);
       };
 
       // Send the request.
-      request.send(JSON.stringify({
+      xhr.send(JSON.stringify({
         "activationCode": activationCode,
         "apikey": config.apikey
       }));

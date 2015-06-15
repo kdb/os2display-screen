@@ -18,5 +18,14 @@ window.config = {
     "secure": false
   },
   // Display debug messages.
-  "debug": false
+  "debug": false,
+  // Software version.
+  "version": "dev",
+  // itkLog configuration.
+  "itkLog": {
+    "version": "1",
+    "errorCallback": null,
+    "logToConsole": true,
+    "logLevel": "all"
+  }
 };

@@ -10,21 +10,20 @@
   'use strict';
 
   var app;
-  app = angular.module('itkDateComponent', []);
+  app = angular.module('itkDigitalClockComponent', []);
 
   /**
    * date component directive.
    *
    * html parameters:
    */
-  app.directive('dateComponent', ['$interval',
+  app.directive('digitalClockComponent', ['$interval',
     function ($interval) {
       return {
         restrict: 'E',
         replace: true,
-        templateUrl: 'app/shared/components/date/date.html?' + window.config.version,
+        templateUrl: 'app/shared/components/digital-clock/digital-clock.html?' + window.config.version,
         scope: {
-          theme: '@'
         },
         link: function (scope) {
           scope.thisDate = new Date();
@@ -32,8 +31,8 @@
           // Update current date every minute.
           var interval = $interval(function() {
             // Update current datetime.
-            scope.thisDate = new Date();
-          }, 60000);
+            scope.thisDate = Date.now();
+          }, 1000);
 
           // Register event listener for destroy.
           //   Cleanup interval.
