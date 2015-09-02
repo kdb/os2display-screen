@@ -19,8 +19,8 @@
    *   region (integer): region id.
    *   show-progress (boolean): should the progress bar/box be displayed?
    */
-  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLog',
-    function ($rootScope, $timeout, $interval, itkLog) {
+  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLog', '$http', '$sce',
+    function ($rootScope, $timeout, $interval, itkLog, $http, $sce) {
       return {
         restrict: 'E',
         scope: {
@@ -422,6 +422,22 @@
           };
 
           /**
+           * Go to next rss news.
+           * @param slide
+           */
+          var rssTimeout = function(slide) {
+            timeout = $timeout(function () {
+              if (slide.rss.rssEntry + 1 >= slide.options.news_number) {
+                nextSlide();
+              }
+              else {
+                slide.rss.rssEntry++;
+                timeout = rssTimeout(slide);
+              }
+            }, slide.options.news_duration * 1000);
+          };
+
+          /**
            * Display the current slide.
            */
           var displaySlide = function () {
@@ -443,8 +459,50 @@
               return;
             }
 
-            // Handle video input or regular slide.
-            if (slide.media_type === 'video') {
+            // Handle rss slide_type, video media_type or image media_type.
+            if (slide.slide_type === 'rss') {
+              // Get the feed
+              $http.jsonp(
+                '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=' + slide.options.news_number + '&callback=JSON_CALLBACK&output=xml&q=' +
+                encodeURIComponent(slide.options.source))
+                .success(function(data) {
+                  var xmlString = data.responseData.xmlString;
+                  slide.rss = {feed: {entries:[]}};
+                  slide.rss.rssEntry = 0;
+
+                  slide.rss.feed.title = $sce.trustAsHtml($(xmlString).find('channel > title').text());
+
+                  $(xmlString).find('channel > item').each(function() {
+                    var entry = $(this);
+
+                    var news = {};
+
+                    news.title = $sce.trustAsHtml(entry.find('title').text());
+                    news.description = $sce.trustAsHtml(entry.find('description').text());
+                    news.date = new Date(entry.find('pubDate').text());
+
+                    slide.rss.feed.entries.push(news);
+                  });
+
+                  timeout = rssTimeout(slide);
+
+                  // Set the progress bar animation.
+                  var dur = slide.options.news_duration * slide.options.news_number - 1;
+                  startProgressBar(dur);
+                })
+                .error(function (message) {
+                  itkLog.error(message);
+                  if (slide.rss.feed && slide.rss.feed.entries && slide.rss.feed.entries.length > 0) {
+                    slide.rss.rssEntry = 0;
+                    timeout = rssTimeout(slide);
+                  }
+                  else {
+                    // Go to next slide.
+                    $timeout(nextSlide, 5000);
+                  }
+                });
+            }
+            else if (slide.media_type === 'video') {
               // If media is empty go to the next slide.
               if (slide.media.length <= 0) {
                 nextSlide();
@@ -558,7 +616,7 @@
                 sources[i].setAttribute('src', sources[i].getAttribute('data-src'));
               }
             }
-          }
+          };
 
           /**
            * Update which slides to show next.
