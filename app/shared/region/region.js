@@ -427,14 +427,14 @@
            */
           var rssTimeout = function(slide) {
             timeout = $timeout(function () {
-              if (slide.rss.rssEntry + 1 >= slide.options.news_number) {
+              if (slide.rss.rssEntry + 1 >= slide.options.rss_number) {
                 nextSlide();
               }
               else {
                 slide.rss.rssEntry++;
                 timeout = rssTimeout(slide);
               }
-            }, slide.options.news_duration * 1000);
+            }, slide.options.rss_duration * 1000);
           };
 
           /**
@@ -463,7 +463,7 @@
             if (slide.slide_type === 'rss') {
               // Get the feed
               $http.jsonp(
-                '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=' + slide.options.news_number + '&callback=JSON_CALLBACK&output=xml&q=' +
+                '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=' + slide.options.rss_number + '&callback=JSON_CALLBACK&output=xml&q=' +
                 encodeURIComponent(slide.options.source))
                 .success(function(data) {
                   var xmlString = data.responseData.xmlString;
@@ -487,7 +487,7 @@
                   timeout = rssTimeout(slide);
 
                   // Set the progress bar animation.
-                  var dur = slide.options.news_duration * slide.options.news_number - 1;
+                  var dur = slide.options.rss_duration * slide.options.rss_number - 1;
                   startProgressBar(dur);
                 })
                 .error(function (message) {
