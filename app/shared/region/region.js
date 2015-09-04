@@ -30,6 +30,11 @@
         },
         templateUrl: 'app/shared/region/region.html?' + window.config.version,
         link: function (scope) {
+          $rootScope.$broadcast('regionInfo', {
+            "id": scope.regionId,
+            "scheduledSlides": 0
+          });
+
           // To get smooth transitions between slides, channels consist of two arrays, that are switched between.
           // The current array consist of the channels that are in the current rotation, and the other array
           //   contains future slides.
@@ -108,6 +113,11 @@
             }
 
             scope.progressBoxElements = numberOfScheduledSlides;
+
+            $rootScope.$broadcast('regionInfo', {
+              "id": scope.regionId,
+              "scheduledSlides": numberOfScheduledSlides
+            });
           };
 
           /**
@@ -225,6 +235,7 @@
            * Update which slides are scheduled to be shown.
            */
           var updateSlidesScheduled = function updateSlidesScheduled() {
+            var slidesScheduled = 0;
             scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
               var channel = scope.channels[scope.displayIndex][channelKey];
 
@@ -725,6 +736,8 @@
               scope.slidesUpdated = true;
             }
           });
+
+
         }
       }
     }

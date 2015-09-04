@@ -39,6 +39,7 @@
     <script src="app/shared/filters/activeEvents.js?2708201501"></script>
   </head>
   <body data-ng-controller="IndexController" data-itk-keypress="logout()" data-key="73" data-modifier="17">
+    <div class="fallback-image" data-ng-show="displayFallbackImage" data-ng-style="{'background-image': 'url(' + fallbackImageUrl + ')'}"></div>
     <div data-ng-include="template"></div>
   </body>
 </html>
