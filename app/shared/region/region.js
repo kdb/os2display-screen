@@ -470,7 +470,7 @@
                   // Make sure we do not have an error result from googleapis
                   if (data.responseStatus !== 200) {
                     itkLog.error(data.responseDetails, data.responseStatus);
-                    if (slide.rss.feed && slide.rss.feed.entries && slide.rss.feed.entries.length > 0) {
+                    if (slide.rss && slide.rss.feed && slide.rss.feed.entries && slide.rss.feed.entries.length > 0) {
                       slide.rss.rssEntry = 0;
                       timeout = rssTimeout(slide);
                     }
