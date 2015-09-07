@@ -103,4 +103,16 @@ body {
 .fallback-image.ng-hide {
   opacity:0;
   display: none;
+  z-index: 0;
+}
+
+.content {
+  z-index: 1;
+  background: black;
+}
+
+.not-activated {
+  z-index: 2;
+  position: absolute;
+  cursor: pointer;
 }
