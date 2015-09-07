@@ -17,8 +17,33 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
     // Is the screen running (has the screen template been loaded?).
     $scope.running = false;
 
+    $scope.fallbackImageUrl = window.config.fallback_image ? window.config.fallback_image : 'assets/images/fallback_default.png';
+
     // Stored channels for when the screen template has not yet been loaded.
     var savedChannelPushes = [];
+
+    // Saved info about regions
+    var regions = [];
+
+    // Should the fallback image be displayed?
+    $scope.displayFallbackImage = true;
+
+    /**
+     * Register to the regionInfo event.
+     * Updates whether or not the fallback image should be displayed.
+     */
+    $rootScope.$on('regionInfo', function(event, info) {
+      regions[info.id] = info;
+
+      var hasScheduled = false;
+      regions.forEach(function(region) {
+        if (region.scheduledSlides > 0) {
+          hasScheduled = true;
+        }
+      });
+
+      $scope.displayFallbackImage = !hasScheduled;
+    });
 
     /**
      * Register to the activationNotComplete event.

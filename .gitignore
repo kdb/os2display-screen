@@ -3,3 +3,4 @@
 *.pid
 .idea
 app/config.js
+assets/images/fallback_override.png

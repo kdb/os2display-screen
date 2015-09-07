@@ -27,5 +27,7 @@ window.config = {
     "errorCallback": null,
     "logToConsole": true,
     "logLevel": "all"
-  }
+  },
+  // Fallback image url, (null = default)
+  fallback_image: none
 };
