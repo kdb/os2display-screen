@@ -27,5 +27,7 @@ window.config = {
     "errorCallback": null,
     "logToConsole": true,
     "logLevel": "all"
-  }
+  },
+  // Fallback image url, (null = default), else set to "assets/images/fallback_override.png" and add the image
+  fallback_image: null
 };

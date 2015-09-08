@@ -19,8 +19,8 @@
    *   region (integer): region id.
    *   show-progress (boolean): should the progress bar/box be displayed?
    */
-  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLog',
-    function ($rootScope, $timeout, $interval, itkLog) {
+  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLog', '$http', '$sce',
+    function ($rootScope, $timeout, $interval, itkLog, $http, $sce) {
       return {
         restrict: 'E',
         scope: {
@@ -30,6 +30,11 @@
         },
         templateUrl: 'app/shared/region/region.html?' + window.config.version,
         link: function (scope) {
+          $rootScope.$broadcast('regionInfo', {
+            "id": scope.regionId,
+            "scheduledSlides": 0
+          });
+
           // To get smooth transitions between slides, channels consist of two arrays, that are switched between.
           // The current array consist of the channels that are in the current rotation, and the other array
           //   contains future slides.
@@ -108,6 +113,11 @@
             }
 
             scope.progressBoxElements = numberOfScheduledSlides;
+
+            $rootScope.$broadcast('regionInfo', {
+              "id": scope.regionId,
+              "scheduledSlides": numberOfScheduledSlides
+            });
           };
 
           /**
@@ -225,6 +235,7 @@
            * Update which slides are scheduled to be shown.
            */
           var updateSlidesScheduled = function updateSlidesScheduled() {
+            var slidesScheduled = 0;
             scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
               var channel = scope.channels[scope.displayIndex][channelKey];
 
@@ -422,6 +433,22 @@
           };
 
           /**
+           * Go to next rss news.
+           * @param slide
+           */
+          var rssTimeout = function(slide) {
+            timeout = $timeout(function () {
+              if (slide.rss.rssEntry + 1 >= slide.options.rss_number) {
+                nextSlide();
+              }
+              else {
+                slide.rss.rssEntry++;
+                timeout = rssTimeout(slide);
+              }
+            }, slide.options.rss_duration * 1000);
+          };
+
+          /**
            * Display the current slide.
            */
           var displaySlide = function () {
@@ -443,8 +470,65 @@
               return;
             }
 
-            // Handle video input or regular slide.
-            if (slide.media_type === 'video') {
+            // Handle rss slide_type, video media_type or image media_type.
+            if (slide.slide_type === 'rss') {
+              itkLog.info('Getting rss feed' + slide.options.source);
+              // Get the feed
+              $http.jsonp(
+                '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=' + slide.options.rss_number + '&callback=JSON_CALLBACK&output=xml&q=' +
+                encodeURIComponent(slide.options.source))
+                .success(function(data) {
+                  // Make sure we do not have an error result from googleapis
+                  if (data.responseStatus !== 200) {
+                    itkLog.error(data.responseDetails, data.responseStatus);
+                    if (slide.rss && slide.rss.feed && slide.rss.feed.entries && slide.rss.feed.entries.length > 0) {
+                      slide.rss.rssEntry = 0;
+                      timeout = rssTimeout(slide);
+                    }
+                    else {
+                      // Go to next slide.
+                      $timeout(nextSlide, 5000);
+                    }
+                    return;
+                  }
+
+                  var xmlString = data.responseData.xmlString;
+                  slide.rss = {feed: {entries:[]}};
+                  slide.rss.rssEntry = 0;
+
+                  slide.rss.feed.title = $sce.trustAsHtml($(xmlString).find('channel > title').text());
+
+                  $(xmlString).find('channel > item').each(function() {
+                    var entry = $(this);
+
+                    var news = {};
+
+                    news.title = $sce.trustAsHtml(entry.find('title').text());
+                    news.description = $sce.trustAsHtml(entry.find('description').text());
+                    news.date = new Date(entry.find('pubDate').text());
+
+                    slide.rss.feed.entries.push(news);
+                  });
+
+                  timeout = rssTimeout(slide);
+
+                  // Set the progress bar animation.
+                  var dur = slide.options.rss_duration * slide.options.rss_number - 1;
+                  startProgressBar(dur);
+                })
+                .error(function (message) {
+                  itkLog.error(message);
+                  if (slide.rss.feed && slide.rss.feed.entries && slide.rss.feed.entries.length > 0) {
+                    slide.rss.rssEntry = 0;
+                    timeout = rssTimeout(slide);
+                  }
+                  else {
+                    // Go to next slide.
+                    $timeout(nextSlide, 5000);
+                  }
+                });
+            }
+            else if (slide.media_type === 'video') {
               // If media is empty go to the next slide.
               if (slide.media.length <= 0) {
                 nextSlide();
@@ -558,7 +642,7 @@
                 sources[i].setAttribute('src', sources[i].getAttribute('data-src'));
               }
             }
-          }
+          };
 
           /**
            * Update which slides to show next.
@@ -652,6 +736,8 @@
               scope.slidesUpdated = true;
             }
           });
+
+
         }
       }
     }

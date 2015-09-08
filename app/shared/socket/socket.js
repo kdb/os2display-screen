@@ -290,7 +290,9 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLog',
             // Something went wrong.
             kickXHR.onerror = function (exception) {
               // There was a connection error of some sort
-              itkLog.error('Kick request failed.', exception);
+              $rootScope.$apply(function() {
+                itkLog.error('Kick request failed.', exception);
+              });
             };
 
             // Send the request.
@@ -301,13 +303,17 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLog',
         }
         else {
           // We reached our target server, but it returned an error
-          itkLog.error(xhr.responseText, xhr);
+          $rootScope.$apply(function() {
+            itkLog.error(xhr.responseText, xhr);
+          });
         }
       };
 
       xhr.onerror = function (exception) {
         // There was a connection error of some sort
-        itkLog.error('Activation request failed.', exception);
+        $rootScope.$apply(function() {
+          itkLog.error('Activation request failed.', exception);
+        });
       };
 
       // Send the request.
