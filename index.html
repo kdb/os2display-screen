@@ -6,7 +6,7 @@
 
     <link rel="stylesheet" href="assets/css/styles.css?2708201501">
 
-    <title>Indholdskanalen Client</title>
+    <title>Aroskanalen</title>
 
     <!-- Load configuration -->
     <script src="app/config.js?2708201501"></script>
@@ -32,7 +32,7 @@
     <!-- Load the app -->
     <script src="app/app.js?2708201501"></script>
     <script src="app/shared/slide/slide.js?2708201501"></script>
-    <script src="app/shared/socket/socket.js?2708201501"></script>
+    <script src="app/shared/socket/socket.js?0709201501"></script>
     <script src="app/pages/index/indexController.js?0709201501"></script>
     <script src="app/pages/notActivated/notActivatedController.js?2708201501"></script>
     <script src="app/shared/region/region.js?0709201501"></script>
@@ -40,6 +40,6 @@
   </head>
   <body data-ng-controller="IndexController" data-itk-keypress="logout()" data-key="73" data-modifier="17">
     <div class="fallback-image" data-ng-show="displayFallbackImage" data-ng-style="{'background-image': 'url(' + fallbackImageUrl + ')'}"></div>
-    <div data-ng-include="template"></div>
+    <div class="content" data-ng-include="template"></div>
   </body>
 </html>
