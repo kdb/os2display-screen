@@ -36,27 +36,6 @@ angular.module('ikApp').directive('slide', ['cssInjector',
       link: function(scope, element, attrs) {
         scope.ikSlide.uniqueId = null;
 
-        // Last time the slide was refreshed.
-        var lastRefresh = 0;
-
-        // Return af new refreshed source, with a 30 seconds interval.
-        scope.ikSlide.getRefreshedSource = function() {
-          if (scope.show) {
-            var date = (new Date()).getTime();
-            if (date - lastRefresh > 30000) {
-              lastRefresh = date;
-            }
-          }
-
-          // Make sure path parameters are not overridden.
-          if (scope.ikSlide.options.source.indexOf('?') > 0) {
-            return scope.ikSlide.options.source + "&ikrefresh=" + lastRefresh;
-          }
-          else {
-            return scope.ikSlide.options.source + "?ikrefresh=" + lastRefresh;
-          }
-        };
-
         // Observe for changes to ik-array-id attribute. Set unique id.
         attrs.$observe('regionId', function(val) {
           if (!val) {
@@ -73,42 +52,21 @@ angular.module('ikApp').directive('slide', ['cssInjector',
             return;
           }
 
-          // Only show first image in array.
-          if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length > 0) {
-            scope.ikSlide.currentImage = scope.ikSlide.media[0].image;
-          }
-          else if (scope.ikSlide.media_type === 'video' && scope.ikSlide.media.length > 0) {
-            // Set current video variable to path to video files.
-            scope.ikSlide.currentVideo = {
-              "mp4": scope.ikSlide.media[0].mp4,
-              "ogg": scope.ikSlide.media[0].ogv,
-              "webm": scope.ikSlide.media[0].webm
-            };
-          }
-
-          // Set currentLogo.
-          scope.ikSlide.currentLogo = scope.ikSlide.logo;
-
-          // Setup the inline styling
-          scope.theStyle = {
-            width: "100%",
-            height: "100%",
-            fontsize: scope.ikSlide.options.fontsize * (scope.scale ? scope.scale : 1.0)+ "px"
-          };
-
-          if (scope.ikSlide.options.responsive_fontsize) {
-            scope.theStyle.responsiveFontsize = scope.ikSlide.options.responsive_fontsize * (scope.scale ? scope.scale : 1.0)+ "vw";
+          if (scope.ikSlide.js_path && scope.ikSlide.slide_type && !window.slideFunctions[scope.ikSlide.slide_type]) {
+            $.getScript(scope.ikSlide.js_path, function() {
+              window.slideFunctions[scope.ikSlide.slide_type].setup(scope.ikSlide, scope);
+            });
+          } else {
+            if (scope.ikSlide.slide_type) {
+              window.slideFunctions[scope.ikSlide.slide_type].setup(scope.ikSlide, scope);
+            }
+            else {
+              window.slideFunctions['null'].setup(scope.ikSlide, scope);
+            }
           }
 
           // Inject stylesheet.
           cssInjector.add(scope.ikSlide.css_path);
-        });
-
-        // Cleanup videojs when ikSlide is removed.
-        scope.$on('$destroy', function() {
-          if (scope.ikSlide.videojs) {
-            scope.ikSlide.videojs.dispose();
-          }
         });
       },
       template: '<div data-ng-include="ikSlide.template_path"></div>'

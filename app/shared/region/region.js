@@ -235,7 +235,6 @@
            * Update which slides are scheduled to be shown.
            */
           var updateSlidesScheduled = function updateSlidesScheduled() {
-            var slidesScheduled = 0;
             scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
               var channel = scope.channels[scope.displayIndex][channelKey];
 
@@ -412,47 +411,10 @@
           };
 
           /**
-           * Handle video error.
-           *
-           * @param event
-           *   If defined it's a normal error event else it's offline down.
-           */
-          var videoErrorHandling = function videoErrorHandling(event) {
-            if (event !== undefined) {
-              // Normal javascript error event.
-              event.target.removeEventListener(event.type, videoErrorHandling);
-              itkLog.error('Network connection.', event);
-            }
-            else {
-              itkLog.error('Unknown video network connection error.');
-            }
-            Offline.off('down');
-
-            // Go to the next slide.
-            nextSlide();
-          };
-
-          /**
-           * Go to next rss news.
-           * @param slide
-           */
-          var rssTimeout = function(slide) {
-            timeout = $timeout(function () {
-              if (slide.rss.rssEntry + 1 >= slide.options.rss_number) {
-                nextSlide();
-              }
-              else {
-                slide.rss.rssEntry++;
-                timeout = rssTimeout(slide);
-              }
-            }, slide.options.rss_duration * 1000);
-          };
-
-          /**
            * Display the current slide.
            */
           var displaySlide = function () {
-             // To be sure to be sure that the timeout is completed from the last slide.
+            // To be sure to be sure that the timeout is completed from the last slide.
             $timeout.cancel(timeout);
 
             // Reset the UI elements (Slide counter display x/y and progress bar.
@@ -470,177 +432,10 @@
               return;
             }
 
-            // Handle rss slide_type, video media_type or image media_type.
-            if (slide.slide_type === 'rss') {
-              itkLog.info('Getting rss feed' + slide.options.source);
-              // Get the feed
-              $http.jsonp(
-                '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=' + slide.options.rss_number + '&callback=JSON_CALLBACK&output=xml&q=' +
-                encodeURIComponent(slide.options.source))
-                .success(function(data) {
-                  // Make sure we do not have an error result from googleapis
-                  if (data.responseStatus !== 200) {
-                    itkLog.error(data.responseDetails, data.responseStatus);
-                    if (slide.rss && slide.rss.feed && slide.rss.feed.entries && slide.rss.feed.entries.length > 0) {
-                      slide.rss.rssEntry = 0;
-                      timeout = rssTimeout(slide);
-                    }
-                    else {
-                      // Go to next slide.
-                      $timeout(nextSlide, 5000);
-                    }
-                    return;
-                  }
-
-                  var xmlString = data.responseData.xmlString;
-                  slide.rss = {feed: {entries:[]}};
-                  slide.rss.rssEntry = 0;
-
-                  slide.rss.feed.title = $sce.trustAsHtml($(xmlString).find('channel > title').text());
-
-                  $(xmlString).find('channel > item').each(function() {
-                    var entry = $(this);
-
-                    var news = {};
-
-                    news.title = $sce.trustAsHtml(entry.find('title').text());
-                    news.description = $sce.trustAsHtml(entry.find('description').text());
-                    news.date = new Date(entry.find('pubDate').text());
-
-                    slide.rss.feed.entries.push(news);
-                  });
-
-                  timeout = rssTimeout(slide);
-
-                  // Set the progress bar animation.
-                  var dur = slide.options.rss_duration * slide.options.rss_number - 1;
-                  startProgressBar(dur);
-                })
-                .error(function (message) {
-                  itkLog.error(message);
-                  if (slide.rss.feed && slide.rss.feed.entries && slide.rss.feed.entries.length > 0) {
-                    slide.rss.rssEntry = 0;
-                    timeout = rssTimeout(slide);
-                  }
-                  else {
-                    // Go to next slide.
-                    $timeout(nextSlide, 5000);
-                  }
-                });
-            }
-            else if (slide.media_type === 'video') {
-              // If media is empty go to the next slide.
-              if (slide.media.length <= 0) {
-                nextSlide();
-              }
-
-              // Check if there is an internet connection.
-              Offline.on('down', videoErrorHandling);
-              Offline.check();
-              if (Offline.state === 'down') {
-                videoErrorHandling(undefined);
-                return;
-              }
-
-              // Get hold of the video element.
-              var video = document.getElementById('videoPlayer-' + slide.uniqueId);
-
-              // Update video.
-              updateVideoSources(video, false);
-
-              // Add error handling.
-              video.addEventListener('error', videoErrorHandling);
-
-              // Reset video position to prevent flicker from latest playback.
-              try {
-                // Load video to ensure playback after possible errors from last playback. If not called
-                // the video will not play.
-                video.load();
-                video.currentTime = 0;
-              }
-              catch (error) {
-                itkLog.info('Video content might not be loaded, so reset current time not possible');
-
-                // Use the error handling to get next slide.
-                videoErrorHandling(undefined);
-              }
-
-              // Fade timeout to ensure video don't start before it's displayed.
-              timeout = $timeout(function () {
-                // Create interval to get video duration (ready state larger than one is meta-data loaded).
-                var interval = $interval(function() {
-                  if (video.readyState > 0) {
-                    var duration = Math.round(video.duration);
-                    startProgressBar(duration);
-
-                    // Metadata/duration found stop the interval.
-                    $interval.cancel(interval);
-                  }
-                }, 500);
-
-                // Go to the next slide when video playback has ended.
-                video.onended = function ended(event) {
-                  itkLog.info("Video playback ended.", event);
-                  $timeout(function () {
-                    scope.$apply(function () {
-                      // Remove error handling.
-                      video.removeEventListener('error', videoErrorHandling);
-                      Offline.off('down');
-
-                      // Remove video src.
-                      updateVideoSources(video, true);
-
-                      // Go to the next slide.
-                      nextSlide();
-                    });
-                  },
-                  1000);
-                };
-
-                // Play the video.
-                video.play();
-              }, fadeTime);
-            }
-            else {
-              // Set the progress bar animation.
-              $timeout(function () {
-                var dur = slide.duration;
-
-                startProgressBar(dur);
-              }, fadeTime);
-
-              // Wait for slide duration, then show next slide.
-              // + 2 seconds to account for fade in/outs.
-              timeout = $timeout(function () {
-                nextSlide();
-              }, (slide.duration) * 1000 + fadeTime * 2);
-            }
-          };
-
-
-          /**
-           * Helper function to update source for video.
-           *
-           * This is due to a memory leak problem in chrome.
-           *
-           * @param video
-           *   The video element.
-           * @param reset
-           *   If true src is unloaded else src is set from data-src.
-           */
-          var updateVideoSources = function updateVideoSources(video, reset) {
-            // Due to memory leak in chrome we change the src attribute.
-            var sources = video.getElementsByTagName('source');
-            for (var i = 0; i < sources.length; i++) {
-              if (reset) {
-                // @see http://www.attuts.com/aw-snap-solution-video-tag-dispose-method/ about the pause and load.
-                video.pause();
-                sources[i].setAttribute('src', '');
-                video.load();
-              }
-              else {
-                sources[i].setAttribute('src', sources[i].getAttribute('data-src'));
-              }
+            if (window.slideFunctions[slide.slide_type]) {
+              window.slideFunctions[slide.slide_type].run(slide, nextSlide, $http, $timeout, $interval, $sce, itkLog, startProgressBar, fadeTime);
+            } else {
+              window.slideFunctions['null'].run(slide, nextSlide, $http, $timeout, $interval, $sce, itkLog, startProgressBar, fadeTime);
             }
           };
 
@@ -736,8 +531,6 @@
               scope.slidesUpdated = true;
             }
           });
-
-
         }
       }
     }
