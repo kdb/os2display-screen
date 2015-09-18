@@ -57,7 +57,7 @@ angular.module('ikApp').directive('slide', ['cssInjector',
               window.slideFunctions[scope.ikSlide.slide_type].setup(scope.ikSlide, scope);
             });
           } else {
-            if (scope.ikSlide.slide_type) {
+            if (scope.ikSlide.slide_type && window.slideFunctions[scope.ikSlide.slide_type]) {
               window.slideFunctions[scope.ikSlide.slide_type].setup(scope.ikSlide, scope);
             }
             else {
