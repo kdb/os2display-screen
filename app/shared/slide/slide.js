@@ -52,13 +52,15 @@ angular.module('ikApp').directive('slide', ['cssInjector',
             return;
           }
 
-          if (scope.ikSlide.js_path && scope.ikSlide.slide_type && !window.slideFunctions[scope.ikSlide.slide_type]) {
+          console.log(scope.ikSlide);
+
+          if (!window.slideFunctions[scope.ikSlide.js_script_id]) {
             $.getScript(scope.ikSlide.js_path, function() {
-              window.slideFunctions[scope.ikSlide.slide_type].setup(scope.ikSlide, scope);
+              window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);
             });
           } else {
-            if (scope.ikSlide.slide_type && window.slideFunctions[scope.ikSlide.slide_type]) {
-              window.slideFunctions[scope.ikSlide.slide_type].setup(scope.ikSlide, scope);
+            if (scope.ikSlide.js_path && window.slideFunctions[scope.ikSlide.js_path]) {
+              window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);
             }
             else {
               window.slideFunctions['null'].setup(scope.ikSlide, scope);
