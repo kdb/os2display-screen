@@ -52,8 +52,6 @@ angular.module('ikApp').directive('slide', ['cssInjector',
             return;
           }
 
-          console.log(scope.ikSlide);
-
           if (!window.slideFunctions[scope.ikSlide.js_script_id]) {
             $.getScript(scope.ikSlide.js_path, function() {
               window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);

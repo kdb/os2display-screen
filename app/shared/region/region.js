@@ -489,6 +489,8 @@
             else {
               // The show was not running, so update the slides and start the show.
               scope.$apply(function () {
+                scope.running = true;
+
                 // Insert channel into both arrays.
                 var id = "" + channel.data.id;
                 scope.channels[0][id] = angular.copy(channel.data);
