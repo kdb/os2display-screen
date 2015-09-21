@@ -67,7 +67,7 @@ gulp.task('assets', function () {
   gulp.src(jsAssetPaths)
     .pipe(concat('assets.js'))
     .pipe(ngAnnotate())
-    .pipe(gulpif(argv.production, uglify()))
+    .pipe(uglify())
     .pipe(rename({extname: ".min.js"}))
     .pipe(gulp.dest(adminBuildDir))
 });
