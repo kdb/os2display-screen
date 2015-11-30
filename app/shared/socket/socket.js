@@ -265,17 +265,17 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLog',
       xhr.setRequestHeader('Content-Type', 'application/json');
 
       xhr.onload = function (resp) {
-        if (xhr.readyState == 4 && xhr.status == 200) {
+        if (xhr.readyState === 4 && xhr.status === 200) {
           // Success.
           resp = JSON.parse(xhr.responseText);
 
           // Try to get connection to the proxy.
           connect(resp.token);
         }
-        else if (xhr.readyState == 4 && xhr.status == 409) {
+        else if (xhr.readyState === 4 && xhr.status === 409) {
           resp = JSON.parse(xhr.responseText);
           var dialog = confirm(resp.message);
-          if (dialog == true) {
+          if (dialog === true) {
             // Create AJAX call to kick screens.
             var kickXHR = new XMLHttpRequest();
             kickXHR.open('POST', config.resource.server + config.resource.uri + '/screen/kick', true);

@@ -8,12 +8,12 @@
  * Add an active events filter to eventlist.
  */
 angular.module('ikApp').filter('activeEvents', function() {
-  return function(items) {
-    'use strict';
+  "use strict";
 
+  return function(items) {
     // Return if event array empty.
     if (!angular.isArray(items)){
-      return false
+      return false;
     }
 
     // Get current time.

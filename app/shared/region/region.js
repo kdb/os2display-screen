@@ -433,13 +433,7 @@
             }
 
             // Call the run function for the given slide_type.
-            if (window.slideFunctions[slide.js_script_id]) {
-              window.slideFunctions[slide.js_script_id].run(slide, scope, nextSlide, $http, $timeout, $interval, $sce, itkLog, startProgressBar, fadeTime);
-            } else {
-              // If no slide_type is set, call the 'null' slide_type. See app/shared/slide/nullSlide.js
-              // Used for backwards compatibility for temp created before the slide_type field was introduced.
-              window.slideFunctions['null'].run(slide, scope, nextSlide, $http, $timeout, $interval, $sce, itkLog, startProgressBar, fadeTime);
-            }
+            window.slideFunctions[slide.js_script_id].run(slide, scope, nextSlide, $http, $timeout, $interval, $sce, itkLog, startProgressBar, fadeTime);
           };
 
           /**
@@ -535,7 +529,7 @@
             }
           });
         }
-      }
+      };
     }
   ]);
 }).call(this);
