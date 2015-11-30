@@ -12,6 +12,10 @@ angular.module('ikApp').controller('IndexController', ['$scope', '$rootScope', '
   function ($scope, $rootScope, $timeout, socket, itkLog, cssInjector) {
     'use strict';
 
+    if (!window.slideFunctions) {
+      window.slideFunctions = [];
+    }
+
     // The template to render in the index.html's ng-include.
     $scope.template = 'app/pages/index/init.html?' + window.config.version;
     // Is the screen running (has the screen template been loaded?).

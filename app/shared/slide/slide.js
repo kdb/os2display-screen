@@ -52,16 +52,17 @@ angular.module('ikApp').directive('slide', ['cssInjector',
             return;
           }
 
-          if (!window.slideFunctions[scope.ikSlide.js_script_id]) {
+          // Check if script have been loaded, if it has not load the script
+          // and run setup function.
+          if (!window.slideFunctions.hasOwnProperty(scope.ikSlide.js_script_id)) {
             $.getScript(scope.ikSlide.js_path, function() {
               window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);
             });
-          } else {
+          }
+          else {
+            // Script have been load before, so just run setup.
             if (scope.ikSlide.js_path && window.slideFunctions[scope.ikSlide.js_path]) {
               window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);
-            }
-            else {
-              window.slideFunctions['null'].setup(scope.ikSlide, scope);
             }
           }
 
