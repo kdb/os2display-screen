@@ -476,7 +476,7 @@
     }
 
     // Call the run function for the given slide_type.
-    window.slideFunctions[slide.js_script_id].run(slide, self.scope, self, self.$http, self.$timeout, self.$interval, self.$sce, self.itkLog, self.progressBar, self.fadeTime);
+    window.slideFunctions[slide.js_script_id].run(slide, self);
   };
 
   /**
