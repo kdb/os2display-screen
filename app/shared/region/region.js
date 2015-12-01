@@ -508,7 +508,6 @@
             [],
             []
           ];
-          var channelKey = -1;
 
           scope.slideIndex = null;
           scope.channelIndex = null;
@@ -574,7 +573,7 @@
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
 
                 // Select first channel.
-                channelKey = -1;
+                region.channelKey = -1;
 
                 // Make sure the slides have been loaded. Then start the show.
                 // @TODO: Yet another magic timeout value?
