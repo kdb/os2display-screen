@@ -9,11 +9,203 @@
 (function () {
   'use strict';
 
-  var app;
-  app = angular.module("itkRegion", []);
+  var app = angular.module("itkRegion", []);
+
+  // Create ProgressBar object ot handle the bar.
+  function ProgressBar(scope, itkLog) {
+    this.scope = scope;
+    this.itkLog = itkLog;
+  }
 
   /**
-   * region directive.
+   * Sets the progress bar style.
+   *
+   * @param duration
+   *   How many seconds should the animation take?
+   */
+  ProgressBar.prototype.start = function start(duration) {
+    this.scope.progressBarStyle =  {
+      "overflow": "hidden",
+      "-webkit-transition": "width " + duration + "s linear",
+      "-moz-transition": "width " + duration + "s linear",
+      "-o-transition": "width " + duration + "s linear",
+      "transition": "width " + duration + "s linear",
+      "width": "100%"
+    };
+  };
+
+  /**
+   * Reset the progress box.
+   *
+   * @return int
+   *   The number of slides currently scheduled.
+   */
+  ProgressBar.prototype.resetBox = function resetBox() {
+    var self = this;
+
+    self.itkLog.info('resetProgressBox');
+    self.scope.progressBoxElements = 0;
+    self.scope.progressBoxElementsIndex = 0;
+
+    var numberOfScheduledSlides = 0;
+
+    for (var i = 0; i < self.scope.channelKeys[self.scope.displayIndex].length; i++) {
+      var channelKey = self.scope.channelKeys[self.scope.displayIndex][i];
+      var channel = self.scope.channels[self.scope.displayIndex][channelKey];
+
+      if (channel.isScheduled) {
+        for (var j = 0; j < channel.slides.length; j++) {
+          var slide = channel.slides[j];
+          if (slide.isScheduled) {
+            numberOfScheduledSlides++;
+          }
+        }
+      }
+    }
+
+    self.scope.progressBoxElements = numberOfScheduledSlides;
+
+    return numberOfScheduledSlides;
+  };
+
+  /**
+   * Resets the progress bar style.
+   */
+  ProgressBar.prototype.reset = function resetProgressBar() {
+    this.scope.progressBarStyle = {
+      "width": "0"
+    };
+  };
+
+
+  // Create region function object and use prototype to extend it to optimize
+  // memory usage inside the region directive.
+  function Region(scope) {
+    this.scope = scope;
+  }
+
+  /**
+   * Calculated if the slide should be shown now.
+   *
+   * Stores the result of calculation on the slide object in the property
+   * "isScheduled".
+   *
+   * @param slide
+   */
+  Region.prototype.isSlideScheduled = function isSlideScheduled(slide) {
+    var now = Math.round((new Date()).getTime() / 1000);
+    var from = slide.schedule_from;
+    var to = slide.schedule_to;
+
+    var fromSet = from && from !== 0;
+    var toSet = to && to !== 0;
+
+    if (fromSet && !toSet) {
+      slide.isScheduled = from < now;
+    }
+    else if (fromSet && toSet) {
+      slide.isScheduled = from < to && from < now && to > now;
+    }
+    else if (!fromSet && toSet) {
+      slide.isScheduled = to > now;
+    }
+    else {
+      slide.isScheduled = true;
+    }
+  };
+
+  /**
+   * Is the channel scheduled to be shown now?
+   *
+   * @param channel
+   *   The channel to evaluate.
+   * @returns {boolean}
+   */
+  Region.prototype.isChannelScheduled = function isChannelScheduled(channel) {
+    // If no schedule repeat is set, it should be shown all the time.
+    if (!channel.schedule_repeat) {
+      return true;
+    }
+
+    var now = new Date();
+    var nowDay = now.getDay();
+    var nowHour = now.getHours();
+
+    var hourFrom = channel.schedule_repeat_from;
+    var hourTo = channel.schedule_repeat_to;
+    var days = channel.schedule_repeat_days;
+
+    // If all 3 parameters are not set return.
+    if (!hourFrom && !hourTo && days.length === 0) {
+      return true;
+    }
+
+    // Should it be shown today?
+    var repeatToday = false;
+    for (var i = 0; i < days.length; i++) {
+      if (days[i].id === nowDay) {
+        repeatToday = true;
+        break;
+      }
+    }
+
+    // Is it within scheduled hours?
+    if (repeatToday) {
+      if (hourFrom > hourTo) {
+        return false;
+      }
+
+      return nowHour >= hourFrom && nowHour < hourTo;
+    }
+
+    return false;
+  };
+
+  /**
+   * Is the channel published to be shown now?
+   *
+   * @param channel
+   *   The channel to evaluate.
+   */
+  Region.prototype.isChannelPublished = function isChannelPublished(channel) {
+    var now = Math.round((new Date()).getTime() / 1000);
+    var publishFrom = channel.publish_from;
+    var publishTo = channel.publish_to;
+
+    channel.isScheduled = false;
+    if (this.isChannelScheduled(channel)) {
+      if (!publishFrom && !publishTo) {
+        channel.isScheduled = true;
+      }
+      else if (publishFrom && now > publishFrom && (!publishTo || now < publishTo)) {
+        channel.isScheduled = true;
+      }
+      else {
+        channel.isScheduled = !publishFrom && now < publishTo;
+      }
+    }
+  };
+
+  /**
+   * Update which channels are scheduled to be shown.
+   */
+  Region.prototype.updateScheduling = function updateScheduling() {
+    var self = this;
+
+    self.scope.channelKeys[scope.displayIndex].forEach(function (channelKey, index, array) {
+      var channel = scope.channels[scope.displayIndex][channelKey];
+      self.isChannelPublished(channel);
+
+      channel.slides.forEach(function (slide) {
+        self.isSlideScheduled(slide);
+      });
+    });
+  };
+
+
+
+  /**
+   * Region directive.
    *
    * html parameters:
    *   region (integer): region id.
@@ -28,8 +220,8 @@
           showProgress: '=',
           scale: '='
         },
-        templateUrl: 'app/shared/region/region.html?' + window.config.version,
         link: function (scope) {
+          // @TODO: Why this broadcast ?
           $rootScope.$broadcast('regionInfo', {
             "id": scope.regionId,
             "scheduledSlides": 0
@@ -52,6 +244,8 @@
           scope.slideIndex = null;
           scope.channelIndex = null;
           scope.displayIndex = 0;
+
+          // @TODO: Is these used in templates? If not why in scope.
           scope.running = false;
           scope.slidesUpdated = false;
 
@@ -62,187 +256,9 @@
           scope.progressBoxElements = 0;
           scope.progressBoxElementsIndex = 0;
 
-          /**
-           * Sets the progress bar style.
-           *
-           * @param duration
-           *   How many seconds should the animation take?
-           */
-          var startProgressBar = function startProgressBar(duration) {
-            scope.progressBarStyle = {
-              "overflow": "hidden",
-              "-webkit-transition": "width " + duration + "s linear",
-              "-moz-transition": "width " + duration + "s linear",
-              "-o-transition": "width " + duration + "s linear",
-              "transition": "width " + duration + "s linear",
-              "width": "100%"
-            };
-          };
 
-          /**
-           * Resets the progress bar style.
-           */
-          var resetProgressBar = function resetProgressBar() {
-            scope.progressBarStyle = {
-              "width": "0"
-            };
-          };
-
-          /**
-           * Reset the progress box.
-           */
-          var resetProgressBox = function resetProgressBox() {
-            itkLog.info('resetProgressBox');
-            scope.progressBoxElements = 0;
-            scope.progressBoxElementsIndex = 0;
-
-            var numberOfScheduledSlides = 0;
-
-            for (var i = 0; i < scope.channelKeys[scope.displayIndex].length; i++) {
-              var channelKey = scope.channelKeys[scope.displayIndex][i];
-              var channel = scope.channels[scope.displayIndex][channelKey];
-
-              if (channel.isScheduled) {
-                for (var j = 0; j < channel.slides.length; j++) {
-                  var slide = channel.slides[j];
-                  if (slide.isScheduled) {
-                    numberOfScheduledSlides++;
-                  }
-                }
-              }
-            }
-
-            scope.progressBoxElements = numberOfScheduledSlides;
-
-            $rootScope.$broadcast('regionInfo', {
-              "id": scope.regionId,
-              "scheduledSlides": numberOfScheduledSlides
-            });
-          };
-
-          /**
-           * Is the slide scheduled to be shown?
-           *
-           * Returns true if the slide is scheduled to be shown now.
-           *
-           * @param slide
-           * @returns {boolean}
-           */
-          var isSlideScheduled = function isSlideScheduled(slide) {
-            var now = Math.round((new Date()).getTime() / 1000);
-            var from = slide.schedule_from;
-            var to = slide.schedule_to;
-
-            var fromSet = from && from !== 0;
-            var toSet = to && to !== 0;
-
-            if (fromSet && !toSet) {
-              return from < now;
-            }
-
-            if (fromSet && toSet) {
-              return from < to && from < now && to > now;
-            }
-
-            if (!fromSet && toSet) {
-              return to > now;
-            }
-
-            return true;
-          };
-
-          /**
-           * Is the channel published to be shown now?
-           *
-           * @param channel
-           *   The channel to evaluate.
-           * @returns {boolean}
-           */
-          var isChannelPublished = function isChannelPublished(channel) {
-            var now = Math.round((new Date()).getTime() / 1000);
-            var publishFrom = channel.publish_from;
-            var publishTo = channel.publish_to;
-
-            if (!publishFrom && !publishTo) {
-              return true;
-            }
-
-            if (publishFrom && now > publishFrom && (!publishTo || now < publishTo)) {
-              return true;
-            }
-
-            return !publishFrom && now < publishTo;
-          };
-
-          /**
-           * Is the channel scheduled to be shown now?
-           *
-           * @param channel
-           *   The channel to evaluate.
-           * @returns {boolean}
-           */
-          var isChannelScheduled = function isChannelScheduled(channel) {
-            // If no schedule repeat is set, it should be shown all the time.
-            if (!channel.schedule_repeat) {
-              return true;
-            }
-
-            var now = new Date();
-            var nowDay = now.getDay();
-            var nowHour = now.getHours();
-
-            var hourFrom = channel.schedule_repeat_from;
-            var hourTo = channel.schedule_repeat_to;
-            var days = channel.schedule_repeat_days;
-
-            // If all 3 parameters are not set return.
-            if (!hourFrom && !hourTo && days.length === 0) {
-              return true;
-            }
-
-            // Should it be shown today?
-            var repeatToday = false;
-            for (var i = 0; i < days.length; i++) {
-              if (days[i].id === nowDay) {
-                repeatToday = true;
-                break;
-              }
-            }
-
-            // Is it within scheduled hours?
-            if (repeatToday) {
-              if (hourFrom > hourTo) {
-                return false;
-              }
-
-              return nowHour >= hourFrom && nowHour < hourTo;
-            }
-
-            return false;
-          };
-
-          /**
-           * Update which channels are scheduled to be shown.
-           */
-          var updateChannelsScheduled = function updateChannelsScheduled() {
-            scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
-              var channel = scope.channels[scope.displayIndex][channelKey];
-              channel.isScheduled = isChannelPublished(channel) && isChannelScheduled(channel);
-            });
-          };
-
-          /**
-           * Update which slides are scheduled to be shown.
-           */
-          var updateSlidesScheduled = function updateSlidesScheduled() {
-            scope.channelKeys[scope.displayIndex].forEach(function (channelKey) {
-              var channel = scope.channels[scope.displayIndex][channelKey];
-
-              channel.slides.forEach(function (slide) {
-                slide.isScheduled = isSlideScheduled(slide);
-              });
-            });
-          };
+          var region = new Region(scope);
+          var progressBar = new ProgressBar(scope, itkLog);
 
           /**
            * Check if there are any slides that are scheduled.
@@ -294,11 +310,15 @@
             }
 
             // Mark channels and slides that should not be show as isScheduled = false
-            updateChannelsScheduled();
-            updateSlidesScheduled();
+            region.updateScheduling();
 
             // Reset progress box
-            resetProgressBox();
+            var numberOfScheduledSlides = progressBar.resetBox()
+
+            $rootScope.$broadcast('regionInfo', {
+              "id": scope.regionId,
+              "scheduledSlides": numberOfScheduledSlides
+            });
 
             // If no slides are to be displayed, wait 5 seconds and restart.
             if (!slidesRemainToBeShown()) {
@@ -418,7 +438,7 @@
             $timeout.cancel(timeout);
 
             // Reset the UI elements (Slide counter display x/y and progress bar.
-            resetProgressBar();
+            progressBar.reset();
             scope.progressBoxElementsIndex++;
 
             var slide = scope.channels[scope.displayIndex][scope.channelIndex].slides[scope.slideIndex];
@@ -433,7 +453,8 @@
             }
 
             // Call the run function for the given slide_type.
-            window.slideFunctions[slide.js_script_id].run(slide, scope, nextSlide, $http, $timeout, $interval, $sce, itkLog, startProgressBar, fadeTime);
+
+            window.slideFunctions[slide.js_script_id].run(slide, scope, nextSlide, $http, $timeout, $interval, $sce, itkLog, progressBar, fadeTime);
           };
 
           /**
@@ -503,11 +524,15 @@
                   scope.running = true;
 
                   // Mark channels and slides that should not be show as isScheduled = false
-                  updateChannelsScheduled();
-                  updateSlidesScheduled();
+                  region.updateScheduling();
 
                   // Reset progress box
-                  resetProgressBox();
+                  var numberOfScheduledSlides = progressBar.resetBox();
+
+                  $rootScope.$broadcast('regionInfo', {
+                    "id": scope.regionId,
+                    "scheduledSlides": numberOfScheduledSlides
+                  });
 
                   nextChannel();
                 }, 1000);
@@ -528,7 +553,8 @@
               scope.slidesUpdated = true;
             }
           });
-        }
+        },
+        templateUrl: 'app/shared/region/region.html?' + window.config.version
       };
     }
   ]);

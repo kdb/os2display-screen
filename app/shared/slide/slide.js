@@ -7,10 +7,9 @@
  * Directive to insert html for a slide.
  *
  * html parameters
- *   ik-slide (object): The slide to display (This is the variable name used in the
- *     templates, so to change this name would require that names throughout
- *     the backend and templates folder should also be changed).
+ *   ik-slide (object): The slide to display.
  *   show (boolean): Should the slide be visible?
+ *
  *   ---- used for creation unique slide-id ----
  *   array-id (integer): The which displayIndex does this slide belong to?
  *   channel-id (integer): What channel does the slide belong to?
@@ -52,18 +51,19 @@ angular.module('ikApp').directive('slide', ['cssInjector',
             return;
           }
 
-          // Check if script have been loaded, if it has not load the script
+          // Check if script have been loaded. If it has not, load the script
           // and run setup function.
-          if (!window.slideFunctions.hasOwnProperty(scope.ikSlide.js_script_id)) {
-            $.getScript(scope.ikSlide.js_path, function() {
+          if (!window.slideFunctions[scope.ikSlide.js_script_id]) {
+            $.getScript(scope.ikSlide.js_path, function () {
+              // The loaded script set an object with setup() and run() methods
+              // into the slideFunctions array. Hence we can call setup on the
+              // object in the array here.
               window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);
             });
           }
           else {
             // Script have been load before, so just run setup.
-            if (scope.ikSlide.js_path && window.slideFunctions[scope.ikSlide.js_path]) {
-              window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);
-            }
+            window.slideFunctions[scope.ikSlide.js_script_id].setup(scope.ikSlide, scope);
           }
 
           // Inject stylesheet.

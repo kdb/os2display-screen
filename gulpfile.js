@@ -75,7 +75,7 @@ gulp.task('assets', function () {
 /**
  * Watch files for changes and run tasks.
  */
-gulp.task('watch', function() {
+gulp.task('default', function() {
   gulp.watch(jsPaths, ['js']);
   gulp.watch(jsAssetPaths, ['assets']);
 });

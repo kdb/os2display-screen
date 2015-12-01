@@ -1,6 +1,8 @@
 /**
  * @file
  * Contains the itkDateComponent module.
+ *
+ * @TODO: jeskr: why is this code here... what is it used for?
  */
 
 /**
