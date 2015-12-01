@@ -69,9 +69,20 @@
   };
 
   /**
+   * Set the next slide number in the info box.
+   */
+  ProgressBar.prototype.next = function next() {
+    // Reset the bar.
+    this.reset();
+
+    // Update the counter.
+    this.scope.progressBoxElementsIndex++;
+  };
+
+  /**
    * Resets the progress bar style.
    */
-  ProgressBar.prototype.reset = function resetProgressBar() {
+  ProgressBar.prototype.reset = function reset() {
     this.scope.progressBarStyle = {
       "width": "0"
     };
@@ -80,9 +91,40 @@
 
   // Create region function object and use prototype to extend it to optimize
   // memory usage inside the region directive.
-  function Region(scope) {
+  function Region(scope, itkLog, progressBar, $timeout, $rootScope, $http, $interval, $sce) {
     this.scope = scope;
+    this.itkLog = itkLog;
+    this.progressBar = progressBar;
+    this.$timeout = $timeout;
+    this.$rootScope = $rootScope;
+
+    this.$http = $http;
+    this.$interval = $interval;
+    this.$sce = $sce;
+
+    // @TODO: Hardcode fade timeout?
+    this.fadeTime = 1000;
+
+    // @TODO: what is a channel key?
+    this.channelKey = -1;
+
+    // @TODO: try to get out of this timeout h...!
+    this.timeout = null;
   }
+
+  /**
+   * Broadcast regionInfo event.
+   *
+   * @param slideCount
+   *   The number of slides that are scheduled.
+   */
+  Region.prototype.broadcastInfo = function broadcastInfo(slideCount) {
+    var self = this;
+    self.$rootScope.$broadcast('regionInfo', {
+      "id": self.scope.regionId,
+      "scheduledSlides": slideCount
+    });
+  };
 
   /**
    * Calculated if the slide should be shown now.
@@ -191,9 +233,10 @@
    */
   Region.prototype.updateScheduling = function updateScheduling() {
     var self = this;
+    var displayIndex = self.scope.displayIndex;
 
-    self.scope.channelKeys[scope.displayIndex].forEach(function (channelKey, index, array) {
-      var channel = scope.channels[scope.displayIndex][channelKey];
+    self.scope.channelKeys[displayIndex].forEach(function (channelKey, index, array) {
+      var channel = self.scope.channels[displayIndex][channelKey];
       self.isChannelPublished(channel);
 
       channel.slides.forEach(function (slide) {
@@ -202,7 +245,239 @@
     });
   };
 
+  /**
+   * Check if there are any slides that are scheduled.
+   */
+  Region.prototype.slidesRemainToBeShown = function slidesRemainToBeShown() {
+    var self = this;
+    var element;
 
+    var displayIndex = self.scope.displayIndex;
+    var len = self.scope.channelKeys[self.scope.displayIndex].length;
+
+    // Check all channels to see if there are slides to show.
+    for (var i = 0; i < len; i++) {
+      var channel = self.scope.channels[displayIndex][self.scope.channelKeys[displayIndex][i]];
+
+      if (channel.isScheduled) {
+        // Check if there are any slides scheduled in the current channel.
+        for (var k = 0; k < channel.slides.length; k++) {
+          element = channel.slides[k];
+
+          // @TODO: function is called slide(s), so why return true at first
+          //        found slide?
+          if (element.isScheduled) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Restart the show.
+   *
+   * Restart the show from the start of the current channels array,
+   *   or if there have been changes, go to the other channels array.
+   */
+  Region.prototype.restartShow = function restartShow() {
+    var self = this;
+
+    self.itkLog.info("Restart show");
+
+    // @TODO: The magic of -1 one values?
+    self.scope.slideIndex = -1;
+    self.channelKey = -1;
+
+    // Swap to updated channel array, if there have been changes to channels.
+    if (self.scope.slidesUpdated) {
+      // @TODO: Would be nice with comment about this mod magic?
+      var otherDisplayIndex = (self.scope.displayIndex + 1) % 2;
+
+      var displayIndex = self.scope.displayIndex;
+      var channels = self.scope.channels;
+      channels[displayIndex] = angular.copy(channels[otherDisplayIndex]);
+      self.scope.channelKeys[displayIndex] = Object.keys(channels[displayIndex]);
+
+      // Update the display index to the new index value.
+      self.scope.displayIndex = otherDisplayIndex;
+
+      // Reset update variable as slides have been updated.
+      self.scope.slidesUpdated = false;
+
+      // @TODO: Remove the old data in channels[otherDisplayIndex] to free
+      //        memory?
+    }
+
+    // Mark channels and slides that should not be show right now as they may be
+    // scheduled for later. So set isScheduled = false for the slides.
+    self.updateScheduling();
+
+    // Reset progress box.
+    self.broadcastInfo(self.progressBar.resetBox());
+
+    // If no slides are to be displayed, wait 5 seconds and restart.
+    if (!self.slidesRemainToBeShown()) {
+      self.$timeout.cancel(self.timeout);
+      self.timeout = self.$timeout(self.restartShow, 5000);
+    }
+    else {
+      // Show next slide. @TODO: or is it next channel?
+      self.nextChannel();
+    }
+  };
+
+  /**
+   * Go to next channel
+   *
+   * Switch to the next channel or cycle to the first. S
+   */
+  Region.prototype.nextChannel = function nextChannel() {
+    var self = this;
+
+    // @TODO: Add info about the channel to the log? The message said nothing.
+    self.itkLog.info("Next channel");
+
+    self.channelKey++;
+
+    // If more channels remain to be shown, go to next channel.
+    var displayIndex = self.scope.displayIndex;
+    var channelKeys = self.scope.channelKeys;
+    if (self.channelKey < channelKeys[displayIndex].length) {
+      var nextChannelIndex = channelKeys[displayIndex][self.channelKey];
+      var nextChannel = self.scope.channels[displayIndex][nextChannelIndex];
+
+      if (nextChannel.isScheduled) {
+        self.scope.channelIndex = nextChannelIndex;
+        self.scope.slideIndex = -1;
+
+        self.nextSlide();
+      }
+      else {
+        self.$timeout.cancel(self.timeout);
+
+        // @TODO: Why the timeout and why 100ms? Is it fast or is it slow? It's
+        //       "flash"...
+        self.$timeout(nextChannel, 100);
+      }
+    }
+    else {
+      self.restartShow();
+    }
+  };
+
+  /**
+   * Set the next slide, and call displaySlide.
+   */
+  Region.prototype.nextSlide = function nextSlide() {
+    var self = this;
+
+    // @TODO: Please add information about what the next slide is.
+    self.itkLog.info("Next slide");
+
+    var nextSlideIndex = self.scope.slideIndex + 1;
+
+    var displayIndex = self.scope.displayIndex;
+    var channels = self.scope.channels;
+    var channelIndex = self.scope.channelIndex;
+
+    // If overlapping current channel.slides length
+    if (!channels[displayIndex][channelIndex] || nextSlideIndex >= channels[displayIndex][channelIndex].slides.length) {
+      // @TODO: But wait.. nextChannel calls nextSlide? Is this safe?
+      self.nextChannel();
+      return;
+    }
+
+    // If slides array is empty, wait 5 seconds, try again.
+    if (channels[displayIndex][channelIndex] === undefined || channels[displayIndex][channelIndex].slides.length <= 0) {
+      self.$timeout.cancel(self.timeout);
+
+      // @TODO: Why the timeout of 5 sek?
+      self.timeout = self.$timeout(self.nextSlide, 5000);
+    }
+    else {
+      // Get current slide.
+      self.scope.slideIndex = nextSlideIndex;
+      var currentSlide = channels[displayIndex][channelIndex].slides[displayIndex];
+
+      // If slide is not scheduled,
+      //   make sure a slide is scheduled, to be shown, then go to next slide.
+      //   else wait 5 seconds and then go to next slide.
+      // This is to avoid fast loop over slides that are not scheduled,
+      //   when no slide are scheduled.
+      if (!currentSlide.isScheduled) {
+        if (self.slidesRemainToBeShown()) {
+          // @TODO: More information on slide missing?
+          self.itkLog.info('Slide schedule: slides remain.');
+          self.nextSlide();
+        }
+        else {
+          self.itkLog.info('Slide schedule: slides do not remain');
+
+          // If no slide scheduled, wait 5 seconds, then restart show.
+          self.$timeout.cancel(self.timeout);
+          // @TODO: Why is this not assigned "timeout" as all the others? And why 5 sek?
+          self.$timeout(function () {
+            self.restartShow();
+          }, 5000);
+        }
+      }
+      // If the slide is scheduled, show it.
+      else {
+        self.displaySlide();
+      }
+    }
+  };
+
+  /**
+   * Update which slides to show next.
+   *
+   * @param data
+   *   @TODO: what is data?
+   */
+  Region.prototype.updateSlideShow = function updateSlideShow(data) {
+    var self = this;
+    // @TODO: Would be nice with comment about this mod magic? It is also found
+    //        in resetShow()
+    var otherDisplayIndex = (self.scope.displayIndex + 1) % 2;
+    var id = "" + data.id;
+
+    self.scope.channels[otherDisplayIndex][id] = angular.copy(data);
+    self.scope.channelKeys[otherDisplayIndex] = Object.keys(self.scope.channels[otherDisplayIndex]);
+    self.scope.slidesUpdated = true;
+  };
+
+  /**
+   * Display the current slide.
+   */
+  Region.prototype.displaySlide = function displaySlide() {
+    var self = this;
+
+    // To be sure to be sure that the timeout is completed from the last slide.
+    // @TODO:
+    self.$timeout.cancel(self.timeout);
+
+    // Reset the UI elements (Slide counter display x/y and progress bar).
+    self.progressBar.next();
+
+    var slide = self.scope.channels[self.scope.displayIndex][self.scope.channelIndex].slides[self.scope.slideIndex];
+    if (slide === undefined) {
+      self.itkLog.info('No slides yet... waiting 5 seconds');
+
+      // Wait five seconds and try again.
+      // @TODO: The magic 5 sek once more and why it this not assigned "timeout"
+      //        variable?
+      self.$timeout(function () {
+       self.displaySlide();
+      }, 5000);
+      return;
+    }
+
+    // Call the run function for the given slide_type.
+    window.slideFunctions[slide.js_script_id].run(slide, self.scope, self.nextSlide, self.$http, self.$timeout, self.$interval, self.$sce, self.itkLog, self.progressBar, self.fadeTime);
+  };
 
   /**
    * Region directive.
@@ -221,12 +496,6 @@
           scale: '='
         },
         link: function (scope) {
-          // @TODO: Why this broadcast ?
-          $rootScope.$broadcast('regionInfo', {
-            "id": scope.regionId,
-            "scheduledSlides": 0
-          });
-
           // To get smooth transitions between slides, channels consist of two arrays, that are switched between.
           // The current array consist of the channels that are in the current rotation, and the other array
           //   contains future slides.
@@ -249,226 +518,15 @@
           scope.running = false;
           scope.slidesUpdated = false;
 
-          var timeout = null;
-          var fadeTime = 1000;
-
           // Used by progress bar
           scope.progressBoxElements = 0;
           scope.progressBoxElementsIndex = 0;
 
-
-          var region = new Region(scope);
           var progressBar = new ProgressBar(scope, itkLog);
+          var region = new Region(scope, itkLog, progressBar, $timeout, $rootScope, $http, $interval, $sce);
 
-          /**
-           * Check if there are any slides that are scheduled.
-           */
-          var slidesRemainToBeShown = function slidesRemainToBeShown() {
-            var element;
-
-            // Check all channels to see if there are slides to show.
-            for (var i = 0; i < scope.channelKeys[scope.displayIndex].length; i++) {
-              var channelIndex = scope.channelKeys[scope.displayIndex][i];
-              var channel = scope.channels[scope.displayIndex][channelIndex];
-
-              if (channel.isScheduled) {
-                // Check if there are any slides scheduled in the current channel.
-                for (var k = 0; k < channel.slides.length; k++) {
-                  element = channel.slides[k];
-
-                  if (element.isScheduled) {
-                    return true;
-                  }
-                }
-              }
-            }
-
-            return false;
-          };
-
-          /**
-           * Restart the show.
-           *
-           * Restart the show from the start of the current channels array,
-           *   or if there have been changes, go to the other channels array.
-           */
-          var restartShow = function restartShow() {
-            itkLog.info("restart show");
-            var otherDisplayIndex = (scope.displayIndex + 1) % 2;
-
-            scope.slideIndex = -1;
-            channelKey = -1;
-
-            // Swap to updated channel array, if there have been changes to channels.
-            if (scope.slidesUpdated) {
-              scope.channels[scope.displayIndex] = angular.copy(scope.channels[otherDisplayIndex]);
-              scope.channelKeys[scope.displayIndex] = Object.keys(scope.channels[scope.displayIndex]);
-
-              scope.displayIndex = otherDisplayIndex;
-
-              scope.slidesUpdated = false;
-            }
-
-            // Mark channels and slides that should not be show as isScheduled = false
-            region.updateScheduling();
-
-            // Reset progress box
-            var numberOfScheduledSlides = progressBar.resetBox()
-
-            $rootScope.$broadcast('regionInfo', {
-              "id": scope.regionId,
-              "scheduledSlides": numberOfScheduledSlides
-            });
-
-            // If no slides are to be displayed, wait 5 seconds and restart.
-            if (!slidesRemainToBeShown()) {
-              $timeout.cancel(timeout);
-              timeout = $timeout(goRestartShow, 5000);
-            }
-            else {
-              // Show next slide.
-              nextChannel();
-            }
-          };
-
-          /**
-           * Calls restartShow.
-           *
-           * @TODO: Find way to avoid this call from restartShow().
-           */
-          var goRestartShow = function goRestartShow() {
-            restartShow();
-          };
-
-          /**
-           * Calls nextChannel.
-           *
-           * @TODO: Find way to avoid this call from nextChannel().
-           */
-          var goToNextChannel = function goToNextChannel() {
-            nextChannel();
-          };
-
-          /**
-           * Go to next channel
-           *
-           * Switch to the next channel or cycle to the first. S
-           */
-          var nextChannel = function nextChannel() {
-            itkLog.info("next channel");
-
-            channelKey++;
-
-            // If more channels remain to be shown, go to next channel.
-            if (channelKey < scope.channelKeys[scope.displayIndex].length) {
-              var nextChannelIndex = scope.channelKeys[scope.displayIndex][channelKey];
-              var nextChannel = scope.channels[scope.displayIndex][nextChannelIndex];
-              if (nextChannel.isScheduled) {
-                scope.channelIndex = nextChannelIndex;
-                scope.slideIndex = -1;
-
-                nextSlide();
-              }
-              else {
-                $timeout.cancel(timeout);
-                $timeout(goToNextChannel, 100);
-              }
-            }
-            // Else restart the show.
-            else {
-              restartShow();
-            }
-          };
-
-          /**
-           * Set the next slide, and call displaySlide.
-           */
-          var nextSlide = function nextSlide() {
-            itkLog.info("next slide");
-
-            var nextSlideIndex = scope.slideIndex + 1;
-
-            // If overlapping current channel.slides length
-            if (!scope.channels[scope.displayIndex][scope.channelIndex] || nextSlideIndex >= scope.channels[scope.displayIndex][scope.channelIndex].slides.length) {
-              nextChannel();
-              return;
-            }
-
-            // If slides array is empty, wait 5 seconds, try again.
-            if (scope.channels[scope.displayIndex][scope.channelIndex] === undefined || scope.channels[scope.displayIndex][scope.channelIndex].slides.length <= 0) {
-              $timeout.cancel(timeout);
-              timeout = $timeout(nextSlide, 5000);
-              return;
-            }
-
-            // Get current slide.
-            scope.slideIndex = nextSlideIndex;
-            var currentSlide = scope.channels[scope.displayIndex][scope.channelIndex].slides[scope.slideIndex];
-
-            // If slide is not scheduled,
-            //   make sure a slide is scheduled, to be shown, then go to next slide.
-            //   else wait 5 seconds and then go to next slide.
-            // This is to avoid fast loop over slides that are not scheduled,
-            //   when no slide are scheduled.
-            if (!currentSlide.isScheduled) {
-              if (slidesRemainToBeShown()) {
-                itkLog.info('Slide schedule: slides remain.');
-                nextSlide();
-              }
-              else {
-                itkLog.info('Slide schedule: slides do not remain');
-                // If no slide scheduled, wait 5 seconds, then restart show.
-                $timeout.cancel(timeout);
-                $timeout(function () {
-                  restartShow();
-                }, 5000);
-              }
-            }
-            // If the slide is scheduled, show it.
-            else {
-              displaySlide();
-            }
-          };
-
-          /**
-           * Display the current slide.
-           */
-          var displaySlide = function () {
-            // To be sure to be sure that the timeout is completed from the last slide.
-            $timeout.cancel(timeout);
-
-            // Reset the UI elements (Slide counter display x/y and progress bar.
-            progressBar.reset();
-            scope.progressBoxElementsIndex++;
-
-            var slide = scope.channels[scope.displayIndex][scope.channelIndex].slides[scope.slideIndex];
-            if (slide === undefined) {
-              itkLog.info('No slides yet... waiting 5 seconds');
-
-              // Wait five seconds and try again.
-              $timeout(function () {
-                displaySlide();
-              }, 5000);
-              return;
-            }
-
-            // Call the run function for the given slide_type.
-
-            window.slideFunctions[slide.js_script_id].run(slide, scope, nextSlide, $http, $timeout, $interval, $sce, itkLog, progressBar, fadeTime);
-          };
-
-          /**
-           * Update which slides to show next.
-           * @param data
-           */
-          var updateSlideShow = function updateSlideShow(data) {
-            var otherDisplayIndex = (scope.displayIndex + 1) % 2;
-            var id = "" + data.id;
-
-            scope.channels[otherDisplayIndex][id] = angular.copy(data);
-            scope.channelKeys[otherDisplayIndex] = Object.keys(scope.channels[otherDisplayIndex]);
-            scope.slidesUpdated = true;
-          };
+          // @TODO: comment needed.
+          region.broadcastInfo(0);
 
           // Event handler for 'addChannel' event.
           // Content has arrived from the middleware.
@@ -499,7 +557,7 @@
 
             // The show is running simply update the slides.
             if (scope.running) {
-              updateSlideShow(channel.data);
+              region.updateSlideShow(channel.data);
             }
             else {
               // The show was not running, so update the slides and start the show.
@@ -519,6 +577,7 @@
                 channelKey = -1;
 
                 // Make sure the slides have been loaded. Then start the show.
+                // @TODO: Yet another magic timeout value?
                 $timeout(function () {
                   scope.slideIndex = -1;
                   scope.running = true;
@@ -527,14 +586,9 @@
                   region.updateScheduling();
 
                   // Reset progress box
-                  var numberOfScheduledSlides = progressBar.resetBox();
+                  region.broadcastInfo(progressBar.resetBox());
 
-                  $rootScope.$broadcast('regionInfo', {
-                    "id": scope.regionId,
-                    "scheduledSlides": numberOfScheduledSlides
-                  });
-
-                  nextChannel();
+                  region.nextChannel();
                 }, 1000);
               });
             }
@@ -543,6 +597,7 @@
           // Event handler for 'removeChannel' event.
           // Remove the channel from the next display array.
           $rootScope.$on('removeChannel', function removeChannelEvent(event, channel) {
+            // @TODO: Would be nice with comment about this mod magic? Use 2 other place as well.
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
             var id = "" + channel.id;
 
