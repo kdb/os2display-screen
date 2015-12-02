@@ -109,10 +109,6 @@
     // @TODO: Hardcode fade timeout?
     this.fadeTime = 1000;
 
-    // The default key to use in the channels array. Its +1 in nextChannel
-    // therefore, hence -1.
-    this.channelKey = -1;
-
     // @TODO: try to get out of this timeout h...!
     this.timeout = null;
   }
@@ -293,7 +289,7 @@
     // Reset the index keys, they will bed +1 in the nextSlide and nextChannel
     // hence first will be zero indexed.
     self.scope.slideIndex = -1;
-    self.channelKey = -1;
+    self.scope.channelKey = -1;
 
     // Swap to updated channel array, if there have been changes to channels.
     if (self.scope.slidesUpdated) {
@@ -331,7 +327,7 @@
     var self = this;
 
     // Update the channel key to get the next channel in the array.
-    self.channelKey++;
+    self.scope.channelKey++;
 
     // If more channels remain to be shown, go to next channel.
     var displayIndex = self.scope.displayIndex;
@@ -342,11 +338,12 @@
     //        could be used.
 
     // Check if the next channel exists. If not restart the show :-D.
-    if (self.channelKey < channelKeys[displayIndex].length) {
-      var nextChannelIndex = channelKeys[displayIndex][self.channelKey];
+    if (self.scope.channelKey < channelKeys[displayIndex].length) {
+      var nextChannelIndex = channelKeys[displayIndex][self.scope.channelKey];
       var nextChannel = self.scope.channels[displayIndex][nextChannelIndex];
 
       if (nextChannel.isScheduled) {
+        console.log(nextChannelIndex);
         self.scope.channelIndex = nextChannelIndex;
         self.scope.slideIndex = -1;
         self.nextSlide();
@@ -522,8 +519,7 @@
             }
 
             // Check if channel should not be added to region.
-            // If it should not be in region and is already,
-            // remove it from the region.
+            // If it should not be in region and is already, remove it from the region.
             if (channel.regions.indexOf(scope.regionId) === -1) {
               var shadowIndex = region.getShadowIndex();
 
@@ -547,6 +543,9 @@
               region.updateSlideShow(channel.data);
             }
             else {
+              // Ensures that this else statement is only runned one time.
+              scope.running = true;
+
               // The show was not running, so update the slides and start the show.
               // @TODO: Information about shadow.
               scope.$apply(function () {
@@ -556,12 +555,12 @@
                 scope.channels[1][id] = angular.copy(channel.data);
 
                 // Update key arrays
-                     scope.channelKeys[0] = Object.keys(scope.channels[0]);
+                scope.channelKeys[0] = Object.keys(scope.channels[0]);
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
 
                 // Select first channel. It's -1 because it +1 in the
                 // nextChannel function hence first is index 0
-                region.channelKey = -1;
+                scope.channelKey = -1;
 
                 // Make sure the slides have been loaded. Then start the show.
                 // @TODO: We need to find an way to detect that the first slide
@@ -570,7 +569,6 @@
                   // The first slide index is 0, so its ++1 in the nextSlide,
                   // hence -1 is the first index.
                   scope.slideIndex = -1;
-                  scope.running = true;
 
                   // Mark channels and slides that should not be show as isScheduled = false
                   region.updateScheduling();
