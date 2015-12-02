@@ -314,6 +314,15 @@
     // Reset progress box.
     self.broadcastInfo(self.progressBar.resetBox());
 
+    // If no slides are to be displayed, wait 5 seconds and restart.
+    if (!self.isContentScheduled()) {
+      self.$timeout.cancel(self.timeout);
+      self.timeout = self.$timeout(function() {
+        self.restartShow();
+      }, 5000);
+      return;
+    }
+
     // Show next channel.
     self.nextChannel();
   };
@@ -343,7 +352,6 @@
       var nextChannel = self.scope.channels[displayIndex][nextChannelIndex];
 
       if (nextChannel.isScheduled) {
-        console.log(nextChannelIndex);
         self.scope.channelIndex = nextChannelIndex;
         self.scope.slideIndex = -1;
         self.nextSlide();
