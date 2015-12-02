@@ -15,6 +15,10 @@
   function ProgressBar(scope, itkLog) {
     this.scope = scope;
     this.itkLog = itkLog;
+
+    // Used by progress bar
+    this.scope.progressBoxElements = 0;
+    this.scope.progressBoxElementsIndex = 0;
   }
 
   /**
@@ -498,7 +502,7 @@
         link: function (scope) {
           // To get smooth transitions between slides, channels consist of two arrays, that are switched between.
           // The current array consist of the channels that are in the current rotation, and the other array
-          //   contains future slides.
+          // contains future slides.
           scope.channels = [
             {},
             {}
@@ -517,18 +521,17 @@
           scope.running = false;
           scope.slidesUpdated = false;
 
-          // Used by progress bar
-          scope.progressBoxElements = 0;
-          scope.progressBoxElementsIndex = 0;
-
           var progressBar = new ProgressBar(scope, itkLog);
           var region = new Region(scope, itkLog, progressBar, $timeout, $rootScope, $http, $interval, $sce);
 
           // @TODO: comment needed.
           region.broadcastInfo(0);
 
-          // Event handler for 'addChannel' event.
-          // Content has arrived from the middleware.
+          /**
+           * Event handler for 'addChannel' event.
+           *
+           * Content has arrived from the middleware.
+           */
           $rootScope.$on('addChannel', function handleAddChannel(event, channel) {
             if (channel === null) {
               return;
@@ -536,9 +539,11 @@
 
             // Check if channel should not be added to region.
             // If it should not be in region and is already,
-            //   remove it from the region.
+            // remove it from the region.
             if (channel.regions.indexOf(scope.regionId) === -1) {
+              // @TODO: Would be nice with comment about this mod magic? Use 3 other place as well.
               var otherDisplayIndex = (scope.displayIndex + 1) % 2;
+
               var id = "" + channel.data.id;
 
               if (scope.channels[otherDisplayIndex].hasOwnProperty(id)) {
@@ -561,23 +566,31 @@
             else {
               // The show was not running, so update the slides and start the show.
               scope.$apply(function () {
+                // @TODO: Why is running set here when it's also set in the
+                //        $timeout function at the end of this function?
                 scope.running = true;
 
                 // Insert channel into both arrays.
+                // @TODO: Why is the otherDisplayIndex magic not used here but
+                //        just 0 and 1 ?
                 var id = "" + channel.data.id;
                 scope.channels[0][id] = angular.copy(channel.data);
                 scope.channels[1][id] = angular.copy(channel.data);
 
                 // Update key arrays
+                // @TODO: Why is the otherDisplayIndex magic not used here but
+                //        just 0 and 1 ?
                 scope.channelKeys[0] = Object.keys(scope.channels[0]);
                 scope.channelKeys[1] = Object.keys(scope.channels[1]);
 
                 // Select first channel.
+                // @TODO: Why is that -1 and not the real id?
                 region.channelKey = -1;
 
                 // Make sure the slides have been loaded. Then start the show.
                 // @TODO: Yet another magic timeout value?
                 $timeout(function () {
+                  // @TODO: Why is the slide index -1?
                   scope.slideIndex = -1;
                   scope.running = true;
 
@@ -593,10 +606,13 @@
             }
           });
 
-          // Event handler for 'removeChannel' event.
-          // Remove the channel from the next display array.
+          /**
+           * Event handler for 'removeChannel' event.
+           *
+           * Remove the channel from the next display array.
+           */
           $rootScope.$on('removeChannel', function removeChannelEvent(event, channel) {
-            // @TODO: Would be nice with comment about this mod magic? Use 2 other place as well.
+            // @TODO: Would be nice with comment about this mod magic? Use 3 other place as well.
             var otherDisplayIndex = (scope.displayIndex + 1) % 2;
             var id = "" + channel.id;
 
