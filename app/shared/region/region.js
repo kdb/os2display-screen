@@ -150,7 +150,7 @@
       slide.isScheduled = from < now;
     }
     else if (fromSet && toSet) {
-      slide.isScheduled = from < to && from < now && to > now;
+      slide.isScheduled = (from < to && from < now && to > now);
     }
     else if (!fromSet && toSet) {
       slide.isScheduled = to > now;
@@ -404,7 +404,7 @@
     else {
       // Get current slide.
       self.scope.slideIndex = nextSlideIndex;
-      var currentSlide = channels[displayIndex][channelIndex].slides[displayIndex];
+      var currentSlide = channels[displayIndex][channelIndex].slides[nextSlideIndex];
 
       // If slide is not scheduled,
       //   make sure a slide is scheduled, to be shown, then go to next slide.
