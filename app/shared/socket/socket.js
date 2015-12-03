@@ -118,8 +118,6 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLog',
       // Get connected to the server.
       socket = io.connect(config.ws.server, {
         'query': 'token=' + token,
-        'force new connection': true,
-        'max reconnection attempts': Infinity,
         'forceNew': true,
         'reconnection': true,
         'reconnectionDelay': 1000,
