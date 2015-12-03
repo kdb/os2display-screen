@@ -94,7 +94,7 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLog',
     var loadSocket = function loadSocket(callback) {
       var file = document.createElement('script');
       file.setAttribute('type', 'text/javascript');
-      file.setAttribute('src', config.resource.server + config.resource.uri + '/socket.io/socket.io.js');
+      file.setAttribute('src', config.resource.server + config.resource.uri + '/socket.io/socket.io.js?' + config.version);
       file.onload = function () {
         if (typeof io === "undefined") {
           itkLog.error("Socket.io not loaded");
