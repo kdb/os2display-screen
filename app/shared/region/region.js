@@ -501,12 +501,12 @@
             []
           ];
 
+          var running = false;
+
           scope.slideIndex = null;
           scope.channelIndex = null;
           scope.displayIndex = 0;
-
-          // @TODO: Is these used in templates? If not why in scope.
-          scope.running = false;
+          // @TODO: This could be moved out of scope, but needs to be accessible through the region.
           scope.slidesUpdated = false;
 
           var progressBar = new ProgressBar(scope, itkLog);
@@ -547,12 +547,12 @@
             itkLog.info("Adding channel " + channel.data.id + " to region " + scope.regionId);
 
             // The show is running simply update the slides.
-            if (scope.running) {
+            if (running) {
               region.updateSlideShow(channel.data);
             }
             else {
               // Ensures that this else statement is only runned one time.
-              scope.running = true;
+              running = true;
 
               // The show was not running, so update the slides and start the show.
               // @TODO: Information about shadow.
