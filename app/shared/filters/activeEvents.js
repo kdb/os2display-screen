@@ -1,19 +1,28 @@
 /**
  * @file
  * Contains the activeEvents filter.
+ *
  * A filter to display only events that have not yet bypassed their end date.
+ *
+ *
+ * @TODO: jeskr: What are active events and it's related to calendar
+ *               templates... should it not be load from the admin as
+ *               template JS.
  */
 
 /**
- * Add an active events filter to eventlist.
+ * Add an active events filter to event list.
+ *
+ * @TODO: jeskr: The same date calculation is located in the schedule slide
+ *               functions, this should be moved into a date utils extension.
  */
 angular.module('ikApp').filter('activeEvents', function() {
-  return function(items) {
-    'use strict';
+  "use strict";
 
+  return function(items) {
     // Return if event array empty.
     if (!angular.isArray(items)){
-      return false
+      return false;
     }
 
     // Get current time.
