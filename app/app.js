@@ -28,17 +28,42 @@ angular.module('ikApp', [
       // Allow loading from outer templates domain.
       '**'
     ]);
-  }).config(function ($provide) {
-    'use strict';
+  }
+).config(function ($provide) {
+  'use strict';
 
-    $provide.decorator("$exceptionHandler", ['$delegate', '$injector',
-      function ($delegate, $injector) {
-        return function (exception, cause) {
-          $delegate(exception, cause);
+  $provide.decorator("$exceptionHandler", ['$delegate', '$injector',
+    function ($delegate, $injector) {
+      return function (exception, cause) {
+        $delegate(exception, cause);
 
-          // Send the error to itkLog.
-          $injector.get('itkLog').error(exception, cause);
-        };
-      }
-    ]);
-  });
+        // Send the error to itkLog.
+        $injector.get('itkLog').error(exception, cause);
+      };
+    }
+  ]);
+});
+
+/**
+ * Handle hide/show mouse on movement.
+ */
+(function() {
+    var mouseTimer = null, cursorVisible = true;
+
+    function disappearCursor() {
+        mouseTimer = null;
+        document.body.style.cursor = "none";
+        cursorVisible = false;
+    }
+
+    document.onmousemove = function() {
+        if (mouseTimer) {
+            window.clearTimeout(mouseTimer);
+        }
+        if (!cursorVisible) {
+            document.body.style.cursor = "default";
+            cursorVisible = true;
+        }
+        mouseTimer = window.setTimeout(disappearCursor, 5000);
+    };
+})();
