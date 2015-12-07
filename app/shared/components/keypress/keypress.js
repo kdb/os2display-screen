@@ -1,6 +1,8 @@
 /**
  * @file
  * KeyPresses is used to capture keyboard presses.
+ *
+ * It's used in the screen to capture keyboard shortcut for logout.
  */
 
 /**

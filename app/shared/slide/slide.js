@@ -7,10 +7,9 @@
  * Directive to insert html for a slide.
  *
  * html parameters
- *   ik-slide (object): The slide to display (This is the variable name used in the
- *     templates, so to change this name would require that names throughout
- *     the backend and templates folder should also be changed).
+ *   ik-slide (object): The slide to display.
  *   show (boolean): Should the slide be visible?
+ *
  *   ---- used for creation unique slide-id ----
  *   array-id (integer): The which displayIndex does this slide belong to?
  *   channel-id (integer): What channel does the slide belong to?
@@ -36,27 +35,6 @@ angular.module('ikApp').directive('slide', ['cssInjector',
       link: function(scope, element, attrs) {
         scope.ikSlide.uniqueId = null;
 
-        // Last time the slide was refreshed.
-        var lastRefresh = 0;
-
-        // Return af new refreshed source, with a 30 seconds interval.
-        scope.ikSlide.getRefreshedSource = function() {
-          if (scope.show) {
-            var date = (new Date()).getTime();
-            if (date - lastRefresh > 30000) {
-              lastRefresh = date;
-            }
-          }
-
-          // Make sure path parameters are not overridden.
-          if (scope.ikSlide.options.source.indexOf('?') > 0) {
-            return scope.ikSlide.options.source + "&ikrefresh=" + lastRefresh;
-          }
-          else {
-            return scope.ikSlide.options.source + "?ikrefresh=" + lastRefresh;
-          }
-        };
-
         // Observe for changes to ik-array-id attribute. Set unique id.
         attrs.$observe('regionId', function(val) {
           if (!val) {
@@ -73,42 +51,23 @@ angular.module('ikApp').directive('slide', ['cssInjector',
             return;
           }
 
-          // Only show first image in array.
-          if (scope.ikSlide.media_type === 'image' && scope.ikSlide.media.length > 0) {
-            scope.ikSlide.currentImage = scope.ikSlide.media[0].image;
+          // Check if script have been loaded. If it has not, load the script
+          // and run setup function.
+          if (!window.slideFunctions[scope.ikSlide.js_script_id]) {
+            $.getScript(scope.ikSlide.js_path, function () {
+              // The loaded script set an object with setup() and run() methods
+              // into the slideFunctions array. Hence we can call setup on the
+              // object in the array here.
+              window.slideFunctions[scope.ikSlide.js_script_id].setup(scope);
+            });
           }
-          else if (scope.ikSlide.media_type === 'video' && scope.ikSlide.media.length > 0) {
-            // Set current video variable to path to video files.
-            scope.ikSlide.currentVideo = {
-              "mp4": scope.ikSlide.media[0].mp4,
-              "ogg": scope.ikSlide.media[0].ogv,
-              "webm": scope.ikSlide.media[0].webm
-            };
-          }
-
-          // Set currentLogo.
-          scope.ikSlide.currentLogo = scope.ikSlide.logo;
-
-          // Setup the inline styling
-          scope.theStyle = {
-            width: "100%",
-            height: "100%",
-            fontsize: scope.ikSlide.options.fontsize * (scope.scale ? scope.scale : 1.0)+ "px"
-          };
-
-          if (scope.ikSlide.options.responsive_fontsize) {
-            scope.theStyle.responsiveFontsize = scope.ikSlide.options.responsive_fontsize * (scope.scale ? scope.scale : 1.0)+ "vw";
+          else {
+            // Script have been load before, so just run setup.
+            window.slideFunctions[scope.ikSlide.js_script_id].setup(scope);
           }
 
           // Inject stylesheet.
           cssInjector.add(scope.ikSlide.css_path);
-        });
-
-        // Cleanup videojs when ikSlide is removed.
-        scope.$on('$destroy', function() {
-          if (scope.ikSlide.videojs) {
-            scope.ikSlide.videojs.dispose();
-          }
         });
       },
       template: '<div data-ng-include="ikSlide.template_path"></div>'
