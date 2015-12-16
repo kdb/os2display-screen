@@ -115,9 +115,21 @@ angular.module('ikApp').factory('socket', ['$rootScope', 'itkLog',
      *   JWT authentication token from the activation request.
      */
     var connect = function connect(token) {
+      // Check if unique id exists in cookie.
+      var uuid_cookie = new Cookie('indholdskanalen_uuid');
+      var uuid = uuid_cookie.get();
+      if (uuid === undefined) {
+        // Generate random string.
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        uuid = possible.charAt(Math.floor(Math.random() * possible.length)) + Math.random().toString(36).substring(2);
+
+        // Save it in the cookie.
+        uuid_cookie.set(uuid);
+      }
+
       // Get connected to the server.
       socket = io.connect(config.ws.server, {
-        'query': 'token=' + token,
+        'query': 'token=' + token + '&uuid=' + uuid,
         'forceNew': true,
         'reconnection': true,
         'reconnectionDelay': 1000,
