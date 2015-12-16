@@ -52,20 +52,25 @@ angular.module('ikApp', [
 
     function disappearCursor() {
         mouseTimer = null;
-        document.body.style.cursor = 'none';
+
+        document.body.style.cursor = 'url(/assets/images/trans.gif),none';
         cursorVisible = false;
     }
 
-    document.addEventListener("mousemove", function() {
-        if (mouseTimer) {
-            window.clearTimeout(mouseTimer);
-        }
+    // Add hacks fails in chorme, so just always hide mouse cursor.
+    var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+    if (!is_chrome) {
+      document.addEventListener("mousemove", function() {
+          if (mouseTimer) {
+              window.clearTimeout(mouseTimer);
+          }
 
-        if (!cursorVisible) {
-            document.body.style.cursor = 'default';
-            cursorVisible = true;
-        }
+          if (!cursorVisible) {
+              document.body.style.cursor = 'default';
+              cursorVisible = true;
+          }
 
-        mouseTimer = window.setTimeout(disappearCursor, 5000);
-    });
+          mouseTimer = window.setTimeout(disappearCursor, 5000);
+      });
+    }
 })();
