@@ -357,7 +357,7 @@
         self.nextSlide();
       }
       else {
-        nextChannel();
+        self.nextChannel();
       }
     }
     else {
