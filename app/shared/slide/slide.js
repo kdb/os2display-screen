@@ -59,15 +59,11 @@ angular.module('ikApp').directive('slide', ['cssInjector',
               // into the slideFunctions array. Hence we can call setup on the
               // object in the array here.
               window.slideFunctions[scope.ikSlide.js_script_id].setup(scope);
-
-              scope.ikSlide.ready = true;
             });
           }
           else {
             // Script have been load before, so just run setup.
             window.slideFunctions[scope.ikSlide.js_script_id].setup(scope);
-
-            scope.ikSlide.ready = true;
           }
 
           // Inject stylesheet.
