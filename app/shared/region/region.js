@@ -457,8 +457,15 @@
     // Get the slide to be displayed.
     var slide = self.scope.channels[self.scope.displayIndex][self.scope.channelIndex].slides[self.scope.slideIndex];
 
-    // Call the run function for the given slide_type.
-    window.slideFunctions[slide.js_script_id].run(slide, self);
+    // Make sure the slide code is ready.
+    if (slide.ready) {
+      // Call the run function for the given slide_type.
+      window.slideFunctions[slide.js_script_id].run(slide, self);
+    }
+    else {
+      // If not, go to next slide.
+      self.nextSlide();
+    }
   };
 
   /**
