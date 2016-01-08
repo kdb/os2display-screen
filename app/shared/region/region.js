@@ -464,6 +464,7 @@
     }
     else {
       // If not, go to next slide.
+      self.itkLog.info('Slide not ready, going to next slide.');
       self.nextSlide();
     }
   };
