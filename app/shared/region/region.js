@@ -95,7 +95,7 @@
 
   // Create region function object and use prototype to extend it to optimize
   // memory usage inside the region directive.
-  function Region(scope, itkLog, progressBar, $timeout, $rootScope, $http, $interval, $sce) {
+  function Region(scope, itkLog, progressBar, $timeout, $rootScope, $http, $interval, $sce, $filter) {
     this.scope = scope;
     this.itkLog = itkLog;
     this.progressBar = progressBar;
@@ -105,6 +105,7 @@
     this.$http = $http;
     this.$interval = $interval;
     this.$sce = $sce;
+    this.$filter = $filter;
 
     // @TODO: Hardcode fade timeout?
     this.fadeTime = 1000;
@@ -478,8 +479,8 @@
    *   region (integer): region id.
    *   show-progress (boolean): should the progress bar/box be displayed?
    */
-  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLog', '$http', '$sce',
-    function ($rootScope, $timeout, $interval, itkLog, $http, $sce) {
+  app.directive('region', ['$rootScope', '$timeout', '$interval', 'itkLog', '$http', '$sce', '$filter',
+    function ($rootScope, $timeout, $interval, itkLog, $http, $sce, $filter) {
       return {
         restrict: 'E',
         scope: {
@@ -510,7 +511,7 @@
           scope.slidesUpdated = false;
 
           var progressBar = new ProgressBar(scope, itkLog);
-          var region = new Region(scope, itkLog, progressBar, $timeout, $rootScope, $http, $interval, $sce);
+          var region = new Region(scope, itkLog, progressBar, $timeout, $rootScope, $http, $interval, $sce, $filter);
 
           // Broadcast 0 slides to get the default splash image display during
           // init.
