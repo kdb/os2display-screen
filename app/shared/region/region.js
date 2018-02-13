@@ -47,7 +47,6 @@
   ProgressBar.prototype.resetBox = function resetBox() {
     var self = this;
 
-    self.itkLog.info('resetProgressBox');
     self.scope.progressBoxElements = 0;
     self.scope.progressBoxElementsIndex = 0;
 
@@ -284,8 +283,6 @@
    */
   Region.prototype.restartShow = function restartShow() {
     var self = this;
-
-    self.itkLog.info("Restart show");
 
     // Reset the index keys, they will bed +1 in the nextSlide and nextChannel
     // hence first will be zero indexed.
